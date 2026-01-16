@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>МУЖИК — Цех</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+      
+      :root {
+        --accent: #F5C518;
+        --bg: #080808;
+        --card: #121212;
+      }
+
+      body {
+        background-color: var(--bg);
+        color: #FFFFFF;
+        font-family: 'Inter', sans-serif;
+        margin: 0; padding: 0;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        position: fixed;
+      }
+
+      #root { height: 100%; width: 100%; }
+
+      .glass {
+        background: rgba(18, 18, 18, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+
+      .card-border { border: 1px solid rgba(245, 197, 24, 0.1); }
+      .active-scale { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+      .active-scale:active { transform: scale(0.96); filter: brightness(1.1); }
+
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "next/": "https://esm.sh/next@^16.1.2/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.37.0"
+  }
+}
+</script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>

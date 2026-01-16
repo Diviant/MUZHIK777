@@ -1,0 +1,9 @@
+{
+  "name": "Copy of Copy of MUZHIK",
+  "description": "A direct-contact platform for jobs, rotational work, and 'husband for an hour' services with zero commissions.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
