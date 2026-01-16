@@ -6,9 +6,12 @@ const getEnvVar = (key: string): string => {
     const override = localStorage.getItem(`OVERRIDE_SUPABASE_${key}`);
     if (override) return override.trim();
   }
-  const variations = [`VITE_SUPABASE_${key}`, `NEXT_PUBLIC_MUZHIKSUPABASE_${key}`, `SUPABASE_${key}`];
+  
+  // Ищем во всех возможных местах (Vite, Next, Process)
+  const variations = [`VITE_SUPABASE_${key}`, `NEXT_PUBLIC_MUZHIKSUPABASE_${key}`, `SUPABASE_${key}`, `VITE_${key}`];
   const metaEnv = (import.meta as any).env || {};
   const processEnv = typeof process !== 'undefined' ? (process.env as any) : {};
+  
   for (const v of variations) {
     if (metaEnv[v]) return metaEnv[v].trim();
     if (processEnv[v]) return processEnv[v].trim();
@@ -19,8 +22,7 @@ const getEnvVar = (key: string): string => {
 
 const config = {
   url: getEnvVar('URL'),
-  key: getEnvVar('ANON_KEY'),
-  serviceKey: typeof process !== 'undefined' ? (process.env.SUPABASE_SERVICE_ROLE_KEY || '') : ''
+  key: getEnvVar('ANON_KEY')
 };
 
 export const isSupabaseConfigured = () => {
@@ -30,8 +32,8 @@ export const isSupabaseConfigured = () => {
 };
 
 export const supabase = createClient(
-  config.url || 'https://placeholder-fix-your-env.supabase.co',
-  config.key || 'placeholder-key',
+  config.url || 'https://placeholder.supabase.co',
+  config.key || 'placeholder',
   {
     auth: {
       persistSession: true,
@@ -40,45 +42,16 @@ export const supabase = createClient(
   }
 );
 
-export const getAdminClient = () => {
-  return createClient(
-    config.url || 'https://placeholder.supabase.co',
-    config.serviceKey || config.key || 'placeholder',
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  );
-};
-
-export const getTgCredentials = (tgId: number) => {
-  return {
-    email: `tg_${tgId}@muzhik.app`,
-    password: `pass_${tgId}_${config.key.substring(0, 10)}`
-  };
-};
+// Added missing getAdminClient export for bulk operations
+export const getAdminClient = () => supabase;
 
 export const getDebugConfig = () => {
-  const metaEnv = (import.meta as any).env || {};
-  const processEnv = typeof process !== 'undefined' ? (process.env as any) : {};
-  
-  const check = (key: string) => !!(metaEnv[key] || processEnv[key] || (typeof window !== 'undefined' && (window as any)[key]));
-
-  const isLocalStorage = typeof window !== 'undefined' && !!(localStorage.getItem('OVERRIDE_SUPABASE_URL') || localStorage.getItem('OVERRIDE_SUPABASE_ANON_KEY'));
-
   return { 
     url: config.url, 
-    key: config.key, 
-    urlStatus: config.url && config.url.includes('supabase.co') ? 'OK' : 'INVALID', 
-    keyStatus: config.key && config.key.length > 50 ? 'OK' : 'TOO_SHORT', 
-    systemEnv: {
-      HAS_VITE_URL: check('VITE_SUPABASE_URL'),
-      HAS_VITE_KEY: check('VITE_SUPABASE_ANON_KEY'),
-    },
-    isLocalStorage,
-    source: isLocalStorage ? 'LOCAL_STORAGE (OVERRIDE)' : 'SYSTEM_ENV'
+    key: config.key ? `${config.key.substring(0, 8)}...${config.key.substring(config.key.length - 4)}` : 'MISSING',
+    urlOk: config.url?.includes('supabase.co'),
+    keyOk: config.key?.length > 50,
+    isManual: typeof window !== 'undefined' && !!localStorage.getItem('OVERRIDE_SUPABASE_URL')
   };
 };
 
@@ -91,6 +64,13 @@ export const saveManualConfig = (url: string, key: string) => {
 export const clearManualConfig = () => {
   localStorage.removeItem('OVERRIDE_SUPABASE_URL');
   localStorage.removeItem('OVERRIDE_SUPABASE_ANON_KEY');
-  localStorage.clear(); // Полная зачистка
+  localStorage.clear();
   window.location.reload();
+};
+
+export const getTgCredentials = (tgId: number) => {
+  return {
+    email: `tg_${tgId}@muzhik.app`,
+    password: `pass_${tgId}_${(config.key || 'default').substring(0, 10)}`
+  };
 };

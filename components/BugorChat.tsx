@@ -46,6 +46,7 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
     setLoading(true);
 
     try {
+      // Create a new GoogleGenAI instance right before making an API call
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',

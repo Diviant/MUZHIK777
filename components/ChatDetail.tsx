@@ -1,7 +1,61 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Screen, User, Conversation, ChatMessage } from '../types';
-import { GoogleGenAI, Modality, LiveServerMessage } from '@google/genai';
+import { GoogleGenAI, Modality, LiveServerMessage, Blob as GenAIBlob } from '@google/genai';
+
+// Audio decoding helper - Raw PCM to AudioBuffer
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+
+// Base64 decoding helper
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+// Base64 encoding helper
+function encode(bytes: Uint8Array) {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+// PCM Blob creation helper
+function createGenAIBlob(data: Float32Array): GenAIBlob {
+  const l = data.length;
+  const int16 = new Int16Array(l);
+  for (let i = 0; i < l; i++) {
+    int16[i] = data[i] * 32768;
+  }
+  return {
+    data: encode(new Uint8Array(int16.buffer)),
+    mimeType: 'audio/pcm;rate=16000',
+  };
+}
 
 interface Props {
   chat: Conversation | null;
@@ -82,60 +136,81 @@ const ChatDetail: React.FC<Props> = ({ chat, user, navigate }) => {
     setCallStatus('СОЕДИНЕНИЕ...');
     
     try {
-      const ai = new GoogleGenAI({ apiKey: (process as any).env.API_KEY });
+      // Use process.env.API_KEY directly as required
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-      const session = await ai.live.connect({
+      const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         callbacks: {
           onopen: () => {
             setCallStatus('БУГОР НА СВЯЗИ');
             const source = inputCtx.createMediaStreamSource(stream);
-            const processor = inputCtx.createScriptProcessor(4096, 1, 1);
-            processor.onaudioprocess = (e) => {
-              const inputData = e.inputBuffer.getChannelData(0);
-              const pcm = new Int16Array(inputData.length);
-              for (let i = 0; i < inputData.length; i++) pcm[i] = inputData[i] * 32768;
-              const base64 = btoa(String.fromCharCode(...new Uint8Array(pcm.buffer)));
-              session.sendRealtimeInput({ media: { data: base64, mimeType: 'audio/pcm;rate=16000' } });
+            const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
+            scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
+              const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+              const pcmBlob = createGenAIBlob(inputData);
+              // CRITICAL: initiate sendRealtimeInput after live.connect call resolves
+              sessionPromise.then((session) => {
+                session.sendRealtimeInput({ media: pcmBlob });
+              });
             };
-            source.connect(processor);
-            processor.connect(inputCtx.destination);
+            source.connect(scriptProcessor);
+            scriptProcessor.connect(inputCtx.destination);
           },
-          onmessage: async (msg: LiveServerMessage) => {
-            const audioData = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-            if (audioData) {
-              const ctx = audioContextRef.current!;
-              const binary = atob(audioData);
-              const bytes = new Uint8Array(binary.length);
-              for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+          onmessage: async (message: LiveServerMessage) => {
+            const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+            if (base64EncodedAudioString) {
+              const outCtx = audioContextRef.current!;
+              nextStartTimeRef.current = Math.max(
+                nextStartTimeRef.current,
+                outCtx.currentTime,
+              );
               
-              const pcm = new Int16Array(bytes.buffer);
-              const buffer = ctx.createBuffer(1, pcm.length, 24000);
-              const channelData = buffer.getChannelData(0);
-              for (let i = 0; i < pcm.length; i++) channelData[i] = pcm[i] / 32768.0;
+              // Decode PCM using the manually implemented decode functions
+              const audioBuffer = await decodeAudioData(
+                decode(base64EncodedAudioString),
+                outCtx,
+                24000,
+                1,
+              );
+              
+              const source = outCtx.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(outCtx.destination);
+              
+              source.addEventListener('ended', () => {
+                activeSourcesRef.current.delete(source);
+              });
 
-              const source = ctx.createBufferSource();
-              source.buffer = buffer;
-              source.connect(ctx.destination);
-              
-              nextStartTimeRef.current = Math.max(nextStartTimeRef.current, ctx.currentTime);
               source.start(nextStartTimeRef.current);
-              nextStartTimeRef.current += buffer.duration;
+              nextStartTimeRef.current = nextStartTimeRef.current + audioBuffer.duration;
               activeSourcesRef.current.add(source);
-              source.onended = () => activeSourcesRef.current.delete(source);
+            }
+
+            if (message.serverContent?.interrupted) {
+              for (const source of activeSourcesRef.current.values()) {
+                source.stop();
+                activeSourcesRef.current.delete(source);
+              }
+              nextStartTimeRef.current = 0;
             }
           },
           onclose: () => endLiveCall(),
-          onerror: () => setCallStatus('ОШИБКА СЕТИ')
+          onerror: (e: any) => {
+            console.error('Live Call Error:', e);
+            setCallStatus('ОШИБКА СЕТИ');
+          }
         },
         config: {
           responseModalities: [Modality.AUDIO],
           systemInstruction: 'Ты - опытный Бугор (прораб) в строительном Цехе. Твоя задача - давать краткие, четкие и профессиональные советы мужикам по техническим вопросам. Говори по-делу, как настоящий спец.'
         }
       });
+      
+      const session = await sessionPromise;
       liveSessionRef.current = session;
     } catch (err) {
       console.error(err);
@@ -144,8 +219,12 @@ const ChatDetail: React.FC<Props> = ({ chat, user, navigate }) => {
   };
 
   const endLiveCall = () => {
-    if (liveSessionRef.current) liveSessionRef.current.close();
-    activeSourcesRef.current.forEach(s => s.stop());
+    if (liveSessionRef.current) {
+      try { liveSessionRef.current.close(); } catch (e) {}
+    }
+    activeSourcesRef.current.forEach(s => {
+      try { s.stop(); } catch (e) {}
+    });
     activeSourcesRef.current.clear();
     setIsLiveCall(false);
   };
