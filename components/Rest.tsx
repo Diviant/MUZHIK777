@@ -89,16 +89,15 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
 
     const apiKey = getGeminiKey();
     if (!apiKey) {
-      setResult('Ошибка: Ключ API не обнаружен. Настрой его в "ИИ_ПРОФИЛЬ".');
+      setResult('Ошибка: Ключ API не обнаружен.');
       setLoading(false);
       return;
     }
 
     try {
       const ai = new GoogleGenAI({ apiKey });
-      // Используем gemini-3-pro-image-preview так как она лучше работает с поиском
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-image-preview',
+        model: 'gemini-3-flash-preview',
         contents: query,
         config: { tools: [{ googleSearch: {} }] }
       });
@@ -108,18 +107,23 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
         setSources(response.candidates[0].groundingMetadata.groundingChunks);
       }
     } catch (err: any) {
-      console.warn("PRIMARY_API_FAILED, TRYING_FALLBACK:", err);
+      console.warn("API_ERROR:", err);
+      const errMsg = err.message?.toLowerCase() || '';
       
-      // FALLBACK: Пробуем без инструментов поиска на более легкой модели
-      try {
-        const ai = new GoogleGenAI({ apiKey });
-        const response = await ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
-          contents: `${query} (Ответь на основе своих знаний, поиск недоступен)`,
-        });
-        setResult((response.text || '') + "\n\n(Примечание: Ответ без живого поиска)");
-      } catch (fallbackErr: any) {
-        setResult(`Сбой связи: ${fallbackErr.message || 'Ошибка доступа'}`);
+      if (errMsg.includes('403') || errMsg.includes('fetch') || errMsg.includes('location')) {
+        setResult("🚫 РЕГИОНАЛЬНАЯ БЛОКИРОВКА. Бугор не может выйти в сеть Google. Мужик, если ты в РФ — включи VPN и попробуй снова.");
+      } else {
+        // FALLBACK: Попытка без поиска
+        try {
+          const ai = new GoogleGenAI({ apiKey });
+          const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: `${query} (Ответь кратко на основе знаний)`,
+          });
+          setResult((response.text || '') + "\n\n(Примечание: Ответ без поиска в сети)");
+        } catch (fErr: any) {
+          setResult(`Сбой связи: ${fErr.message || 'Ошибка доступа'}`);
+        }
       }
     } finally {
       setLoading(false);
@@ -159,7 +163,7 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
             <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ОТДЫХ В ЦЕХЕ</h2>
             <div className="flex items-center gap-1.5 mt-1.5">
                <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
-               <span className="text-[7px] text-zinc-500 font-black uppercase tracking-widest italic mono">REST_AND_RECOVER_v1.9</span>
+               <span className="text-[7px] text-zinc-500 font-black uppercase tracking-widest italic mono">REST_AND_RECOVER_v2.0</span>
             </div>
           </div>
         </div>

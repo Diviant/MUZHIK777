@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Screen, User, ChatMessage } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -80,9 +79,18 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
       setMessages(prev => [...prev, bugorMsg]);
     } catch (err: any) {
       console.error("BUGOR_API_ERROR:", err);
-      const errorMsg = err.message === 'API_KEY_MISSING' 
-        ? 'Ошибка: Ключ API не обнаружен. Зайди в "Мастерская -> AI_КЛЮЧ".' 
-        : 'Сбой связи с Бугром. Проверь лимиты ключа или интернет.';
+      let errorMsg = 'Сбой связи с Бугром.';
+      
+      const errMsg = err.message?.toLowerCase() || '';
+
+      if (err.message === 'API_KEY_MISSING') {
+        errorMsg = '🔐 ОШИБКА: КЛЮЧ НЕ НАЙДЕН. Зайди в "Мастерская -> AI_КЛЮЧ" и вставь его.';
+      } else if (errMsg.includes('leaked')) {
+        errorMsg = '❌ ТВОЙ КЛЮЧ ЗАБЛОКИРОВАН. Создай НОВЫЙ ключ в Google AI Studio.';
+      } else if (errMsg.includes('403') || errMsg.includes('fetch') || errMsg.includes('location')) {
+        errorMsg = '🚫 БЛОКИРОВКА РЕГИОНА. Мужик, если ты в РФ — включи VPN, иначе Google не пускает!';
+      }
+      
       setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: errorMsg, timestamp: Date.now() }]);
     } finally {
       setLoading(false);

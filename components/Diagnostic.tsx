@@ -44,7 +44,14 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
       });
       setAiTestResult(`СВЯЗЬ: ${response.text || 'ОТВЕТ ПУСТОЙ'}`);
     } catch (e: any) {
-      setAiTestResult(`СБОЙ: ${e.message || 'НЕИЗВЕСТНАЯ ОШИБКА'}`);
+      console.error("AI_TEST_ERROR:", e);
+      if (e.message?.includes('leaked')) {
+        setAiTestResult("❌ КЛЮЧ ЗАБЛОКИРОВАН (УТЕЧКА).");
+      } else if (e.message?.includes('fetch') || e.message?.includes('403')) {
+        setAiTestResult("🚫 БЛОКИРОВКА РЕГИОНА. ВКЛЮЧИ VPN!");
+      } else {
+        setAiTestResult(`СБОЙ: ${e.message || 'НЕИЗВЕСТНАЯ ОШИБКА'}`);
+      }
     } finally {
       setAiLoading(false);
     }
@@ -110,8 +117,16 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
           <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <section className="bg-zinc-900/40 p-5 rounded-[30px] border border-white/5 shadow-2xl">
                <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-4 ml-1">ЛИЧНЫЙ КЛЮЧ GEMINI:</h3>
+               
+               <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-2xl mb-6">
+                  <p className="text-[10px] text-red-400 font-black uppercase italic leading-relaxed">
+                    МУЖИК, ВАЖНО: Если ты в РФ, ИИ работает ТОЛЬКО через VPN. Google блокирует прямые запросы.
+                  </p>
+               </div>
+
                <p className="text-[11px] text-zinc-500 italic mb-6 leading-relaxed px-1">
-                 Вставь свой ключ AIza... Проверь, что в Google Cloud Console включен "Generative Language API".
+                 1. Создай ключ на <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-[#D4AF37] underline">Google AI Studio</a>. <br/>
+                 2. Вставь его ниже и нажми Сохранить.
                </p>
                <input 
                  value={mGKey} 
@@ -124,26 +139,16 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
                    СОХРАНИТЬ
                  </button>
                  <button onClick={testAi} disabled={aiLoading} className="bg-zinc-800 text-white font-black py-4 rounded-xl uppercase italic text-[10px] active-press">
-                   {aiLoading ? '...' : 'ТЕСТ_КЛЮЧА'}
+                   {aiLoading ? '...' : 'ТЕСТ_СВЯЗИ'}
                  </button>
                </div>
                
                {aiTestResult && (
                  <div className="mt-4 p-4 bg-black rounded-xl border border-white/10">
-                   <p className="text-[9px] font-mono text-zinc-400 break-all">{aiTestResult}</p>
-                 </div>
-               )}
-
-               {config.geminiKeySet && (
-                 <div className="mt-5 flex items-center gap-3 justify-center bg-green-500/5 py-3 rounded-xl border border-green-500/10">
-                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]"></div>
-                    <span className="text-[9px] text-green-500 font-black uppercase tracking-widest">КЛЮЧ_ПРОФИЛЯ_АКТИВЕН</span>
+                   <p className="text-[9px] font-mono text-zinc-400 break-all text-center">{aiTestResult}</p>
                  </div>
                )}
             </section>
-            <button onClick={clearManualConfig} className="w-full py-5 text-zinc-700 font-black uppercase text-[10px] tracking-widest italic border border-white/5 rounded-2xl active:bg-white/5 transition-colors">
-              СБРОСИТЬ_ВСЕ_К_ЗАВОДСКИМ
-            </button>
           </div>
         )}
 
@@ -154,14 +159,6 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
                    <span className="text-zinc-700 uppercase">Source: VITE_META</span>
                    <span className={config.sources.vite_url ? "text-green-500 font-black" : "text-red-900"}>{config.sources.vite_url ? "DETECTED" : "NULL"}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                   <span className="text-zinc-700 uppercase">Source: PROCESS_ENV</span>
-                   <span className={config.sources.proc_key ? "text-green-500 font-black" : "text-red-900"}>{config.sources.proc_key ? "DETECTED" : "NULL"}</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                   <span className="text-zinc-700 uppercase">Source: OVERRIDE</span>
-                   <span className={config.sources.local_override ? "text-[#D4AF37] font-black" : "text-zinc-800"}>{config.sources.local_override ? "ACTIVE" : "NONE"}</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
                    <span className="text-zinc-700 uppercase">Source: PROFILE_AI</span>
