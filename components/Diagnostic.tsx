@@ -31,104 +31,110 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 screen-fade overflow-y-auto no-scrollbar bg-[#050505] pt-safe">
-      <header className="flex items-center gap-4 py-4 mb-6">
-        <button onClick={() => navigate(Screen.HOME)} className="w-11 h-11 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center text-[#D4AF37] active-press shadow-xl">
+    <div className="flex-1 flex flex-col px-4 py-6 screen-fade overflow-y-auto no-scrollbar bg-[#050505] pt-safe">
+      <header className="flex items-center gap-4 py-4 mb-6 px-1">
+        <button onClick={() => navigate(Screen.HOME)} className="w-12 h-12 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center text-[#D4AF37] active-press shadow-xl">
           ←
         </button>
         <div className="flex flex-col text-left">
           <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ИНЖЕНЕРНЫЙ ПУЛЬТ</h2>
-          <span className={`text-[8px] font-black uppercase tracking-widest mt-1 mono ${config.urlOk ? 'text-green-500' : 'text-red-500'}`}>
+          <span className={`text-[9px] font-black uppercase tracking-widest mt-1 mono ${config.urlOk ? 'text-green-500' : 'text-red-500'}`}>
             DB_STATUS: {config.urlOk ? 'STABLE' : 'DISCONNECTED'}
           </span>
         </div>
       </header>
 
-      <div className="flex gap-2 p-1 bg-zinc-900/50 rounded-2xl mb-8 border border-white/5 overflow-x-auto no-scrollbar">
-        <button onClick={() => setActiveTab('SYSTEM')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'SYSTEM' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>БАЗА_ДАННЫХ</button>
-        <button onClick={() => setActiveTab('AI')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'AI' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>ИИ_ПРОФИЛЬ</button>
-        <button onClick={() => setActiveTab('ENV_LOG')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'ENV_LOG' ? 'bg-zinc-800 text-white' : 'text-zinc-600'}`}>ENV_LOG</button>
+      <div className="flex gap-1 p-1 bg-zinc-900/50 rounded-2xl mb-8 border border-white/5 w-full">
+        <button onClick={() => setActiveTab('SYSTEM')} className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'SYSTEM' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>БАЗА</button>
+        <button onClick={() => setActiveTab('AI')} className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'AI' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>AI_КЛЮЧ</button>
+        <button onClick={() => setActiveTab('ENV_LOG')} className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'ENV_LOG' ? 'bg-zinc-800 text-white' : 'text-zinc-600'}`}>ENV</button>
       </div>
 
-      <div className="space-y-6 pb-32">
+      <div className="space-y-6 pb-32 w-full">
         {activeTab === 'SYSTEM' && (
-          <div className="space-y-4">
-            <section className="bg-zinc-900/40 p-6 rounded-[35px] border border-white/5 shadow-2xl">
-              <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-6">ПАРАМЕТРЫ СОЕДИНЕНИЯ:</h3>
-              <div className="space-y-4">
-                 <div className="space-y-1 text-left">
-                    <label className="text-[7px] text-zinc-700 font-black uppercase tracking-widest ml-1">SUPABASE_URL</label>
-                    <input value={mUrl} onChange={e => setMUrl(e.target.value)} placeholder={config.url} className="w-full h-12 bg-black border border-white/10 rounded-xl px-4 text-white text-[10px] font-mono outline-none" />
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <section className="bg-zinc-900/40 p-5 rounded-[30px] border border-white/5 shadow-2xl">
+              <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-6 ml-1">КОНФИГУРАЦИЯ SUPABASE:</h3>
+              <div className="space-y-5">
+                 <div className="space-y-1.5 text-left">
+                    <label className="text-[8px] text-zinc-700 font-black uppercase tracking-widest ml-1">SUPABASE_URL</label>
+                    <input value={mUrl} onChange={e => setMUrl(e.target.value)} placeholder={config.url} className="w-full h-14 bg-black border border-white/10 rounded-2xl px-5 text-white text-[11px] font-mono outline-none focus:border-[#D4AF37]/30" />
                  </div>
-                 <div className="space-y-1 text-left">
-                    <label className="text-[7px] text-zinc-700 font-black uppercase tracking-widest ml-1">ANON_KEY (S-ID)</label>
-                    <input value={mKey} onChange={e => setMKey(e.target.value)} placeholder="Вставьте новый ключ для смены базы..." className="w-full h-12 bg-black border border-white/10 rounded-xl px-4 text-white text-[10px] font-mono outline-none" />
+                 <div className="space-y-1.5 text-left">
+                    <label className="text-[8px] text-zinc-700 font-black uppercase tracking-widest ml-1">ANON_KEY (S-ID)</label>
+                    <input value={mKey} onChange={e => setMKey(e.target.value)} placeholder="Вставьте ключ для смены базы..." className="w-full h-14 bg-black border border-white/10 rounded-2xl px-5 text-white text-[11px] font-mono outline-none focus:border-[#D4AF37]/30" />
                  </div>
               </div>
-              <button onClick={handleSave} className="w-full mt-6 bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic text-[11px]">СОХРАНИТЬ_И_ПЕРЕЗАГРУЗИТЬ</button>
+              <button onClick={handleSave} className="w-full mt-8 bg-[#D4AF37] text-black font-black py-5 rounded-2xl uppercase italic text-[12px] shadow-xl shadow-[#D4AF37]/10 active-press">
+                ПРИМЕНИТЬ_И_ПЕРЕЗАГРУЗИТЬ
+              </button>
             </section>
 
-            <button onClick={runTest} disabled={loading} className="w-full h-16 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center gap-4 active-press">
-              {loading ? <div className="w-5 h-5 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div> : <span className="text-xs font-black text-white uppercase italic">ПРОВЕРИТЬ_КОННЕКТ</span>}
+            <button onClick={runTest} disabled={loading} className="w-full h-16 bg-zinc-900 border border-white/10 rounded-[25px] flex items-center justify-center gap-4 active-press transition-colors hover:bg-zinc-800">
+              {loading ? <div className="w-6 h-6 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div> : <span className="text-xs font-black text-white uppercase italic tracking-widest">ПРОВЕРИТЬ_КОННЕКТ</span>}
             </button>
 
             {testResult && (
-              <div className={`p-6 rounded-[30px] border ${testResult.success ? 'bg-green-950/20 border-green-500/30 text-green-400' : 'bg-red-950/20 border-red-500/30 text-red-400'}`}>
-                 <p className="text-[11px] font-medium italic">{testResult.message}</p>
+              <div className={`p-6 rounded-[25px] border animate-in zoom-in duration-200 ${testResult.success ? 'bg-green-950/20 border-green-500/30 text-green-400' : 'bg-red-950/20 border-red-500/30 text-red-400'}`}>
+                 <p className="text-[12px] font-bold italic text-center">{testResult.message}</p>
               </div>
             )}
           </div>
         )}
 
         {activeTab === 'AI' && (
-          <div className="space-y-4">
-            <section className="bg-zinc-900/40 p-6 rounded-[35px] border border-white/5">
-               <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-4">ЛИЧНЫЙ КЛЮЧ GEMINI:</h3>
-               <p className="text-[10px] text-zinc-500 italic mb-6 leading-relaxed">
+          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <section className="bg-zinc-900/40 p-5 rounded-[30px] border border-white/5 shadow-2xl">
+               <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-4 ml-1">ЛИЧНЫЙ КЛЮЧ GEMINI:</h3>
+               <p className="text-[11px] text-zinc-500 italic mb-6 leading-relaxed px-1">
                  Если системный Бугор не отвечает (ошибка ключа на Vercel), вставь сюда свой личный ключ. Он сохранится только в твоем браузере.
                </p>
                <input 
                  value={mGKey} 
                  onChange={e => setMGKey(e.target.value)} 
                  placeholder="AIza..." 
-                 className="w-full h-14 bg-black border border-white/10 rounded-xl px-4 text-white text-[10px] font-mono outline-none focus:border-[#D4AF37]/40 mb-6" 
+                 className="w-full h-16 bg-black border border-white/10 rounded-2xl px-5 text-white text-[12px] font-mono outline-none focus:border-[#D4AF37]/40 mb-6" 
                />
-               <button onClick={handleSave} className="w-full bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic text-[11px]">АКТИВИРОВАТЬ_КЛЮЧ_ПРОФИЛЯ</button>
+               <button onClick={handleSave} className="w-full bg-[#D4AF37] text-black font-black py-5 rounded-2xl uppercase italic text-[12px] shadow-xl shadow-[#D4AF37]/10 active-press">
+                 АКТИВИРОВАТЬ_КЛЮЧ_ПРОФИЛЯ
+               </button>
                {config.geminiKeySet && (
-                 <div className="mt-4 flex items-center gap-2 justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                    <span className="text-[8px] text-green-500 font-black uppercase tracking-widest">КЛЮЧ_ПРОФИЛЯ_АКТИВЕН</span>
+                 <div className="mt-5 flex items-center gap-3 justify-center bg-green-500/5 py-3 rounded-xl border border-green-500/10">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                    <span className="text-[9px] text-green-500 font-black uppercase tracking-widest">КЛЮЧ_ПРОФИЛЯ_АКТИВЕН</span>
                  </div>
                )}
             </section>
-            <button onClick={clearManualConfig} className="w-full py-4 text-zinc-700 font-black uppercase text-[9px] tracking-widest italic border border-white/5 rounded-xl">СБРОСИТЬ_ВСЕ_К_ЗАВОДСКИМ</button>
+            <button onClick={clearManualConfig} className="w-full py-5 text-zinc-700 font-black uppercase text-[10px] tracking-widest italic border border-white/5 rounded-2xl active:bg-white/5 transition-colors">
+              СБРОСИТЬ_ВСЕ_К_ЗАВОДСКИМ
+            </button>
           </div>
         )}
 
         {activeTab === 'ENV_LOG' && (
-          <section className="bg-black border border-white/5 p-6 rounded-[35px] text-left">
-             <h3 className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-6 italic">ENV_DETECTION_MATRIX:</h3>
-             <div className="space-y-3 font-mono text-[9px]">
-                <div className="flex justify-between border-b border-white/5 pb-2">
+          <section className="bg-black border border-white/5 p-5 rounded-[30px] text-left shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
+             <h3 className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-6 italic ml-1">ENV_DETECTION_MATRIX:</h3>
+             <div className="space-y-4 font-mono text-[10px]">
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
                    <span className="text-zinc-700 uppercase">Source: VITE_META</span>
-                   <span className={config.sources.vite_url ? "text-green-500" : "text-red-900"}>{config.sources.vite_url ? "DETECTED" : "NULL"}</span>
+                   <span className={config.sources.vite_url ? "text-green-500 font-black" : "text-red-900"}>{config.sources.vite_url ? "DETECTED" : "NULL"}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
                    <span className="text-zinc-700 uppercase">Source: PROCESS_ENV</span>
-                   <span className={config.sources.proc_key ? "text-green-500" : "text-red-900"}>{config.sources.proc_key ? "DETECTED" : "NULL"}</span>
+                   <span className={config.sources.proc_key ? "text-green-500 font-black" : "text-red-900"}>{config.sources.proc_key ? "DETECTED" : "NULL"}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                   <span className="text-zinc-700 uppercase">Source: LOCAL_OVERRIDE</span>
-                   <span className={config.sources.local_override ? "text-[#D4AF37]" : "text-zinc-800"}>{config.sources.local_override ? "ACTIVE" : "NONE"}</span>
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                   <span className="text-zinc-700 uppercase">Source: OVERRIDE</span>
+                   <span className={config.sources.local_override ? "text-[#D4AF37] font-black" : "text-zinc-800"}>{config.sources.local_override ? "ACTIVE" : "NONE"}</span>
                 </div>
-                <div className="flex justify-between border-b border-white/5 pb-2">
-                   <span className="text-zinc-700 uppercase">Source: PROFILE_AI_KEY</span>
-                   <span className={config.sources.profile_ai_key ? "text-[#D4AF37]" : "text-zinc-800"}>{config.sources.profile_ai_key ? "ACTIVE" : "NONE"}</span>
+                <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                   <span className="text-zinc-700 uppercase">Source: PROFILE_AI</span>
+                   <span className={config.sources.profile_ai_key ? "text-[#D4AF37] font-black" : "text-zinc-800"}>{config.sources.profile_ai_key ? "ACTIVE" : "NONE"}</span>
                 </div>
              </div>
-             <div className="mt-8 p-4 bg-zinc-900/50 rounded-xl">
-                <p className="text-[8px] text-zinc-600 leading-relaxed uppercase">
-                  * На Vercel ключи без префикса VITE_ часто недоступны. Используй ручной ввод в ИИ_ПРОФИЛЬ, если Source: PROCESS_ENV показывает NULL.
+             <div className="mt-8 p-5 bg-zinc-900/50 rounded-2xl border border-white/5">
+                <p className="text-[9px] text-zinc-600 leading-relaxed uppercase italic">
+                  * На некоторых хостингах ключи без префикса VITE_ не видны браузеру. Если всё в NULL — используй ручной ввод во вкладке AI_КЛЮЧ.
                 </p>
              </div>
           </section>
@@ -136,7 +142,7 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
 
         <button 
           onClick={() => navigate(Screen.HOME)} 
-          className="w-full py-5 text-zinc-800 font-black rounded-2xl uppercase italic text-[10px] tracking-[0.4em] active-press border border-white/5"
+          className="w-full py-6 text-zinc-800 font-black rounded-2xl uppercase italic text-[11px] tracking-[0.5em] active-press border border-white/5 bg-zinc-900/10 hover:text-zinc-600 transition-colors"
         >
           ЗАКРЫТЬ_КРАН
         </button>
