@@ -14,7 +14,6 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSOSOverlay, setShowSOSOverlay] = useState(false);
   const [sosProgress, setSosProgress] = useState(0);
-  // Fix: Replaced NodeJS.Timeout with ReturnType<typeof setTimeout> to resolve "Cannot find namespace 'NodeJS'" in browser environment
   const sosTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const tg = (window as any).Telegram?.WebApp;
@@ -27,7 +26,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
           handleSOSActivate();
           return 100;
         }
-        return prev + 2; // ~1.5 секунды для полной зарядки
+        return prev + 2;
       });
     }, 20);
   };
@@ -62,6 +61,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   };
 
   const modules = [
+    { icon: '📡', title: 'Эфир', desc: 'ОБЩИЙ ЧАТ', screen: Screen.FEED },
     { icon: '🗺️', title: 'Карта', desc: 'КТО РЯДОМ', screen: Screen.MAP_EXPLORER },
     { icon: '🏗️', title: 'Мини-CRM', desc: 'УПРАВЛЕНИЕ', screen: Screen.CRM_DASHBOARD },
     { icon: '✅', title: 'Чек-листы', desc: 'НЕ ЗАБУДЬ', screen: Screen.CHECKLISTS },
@@ -69,7 +69,6 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
     { icon: '🚜', title: 'Техника', desc: 'АРЕНДА', screen: Screen.HEAVY_MACHINERY },
     { icon: '🔍', title: 'Снабженец', desc: 'МАТЕРИАЛЫ', screen: Screen.MATERIALS_SEARCH },
     { icon: '📦', title: 'Попутка', desc: 'ЛОГИСТИКА', screen: Screen.CARGO },
-    { icon: '🤝', title: 'Контракт', desc: 'СДЕЛКА', screen: Screen.CONTRACT_GEN },
   ];
 
   return (
@@ -95,6 +94,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
             <div className="flex items-center gap-1 mt-1">
               <div className={`w-1 h-1 rounded-full ${dbConnected ? 'bg-[#D4AF37]' : 'bg-red-600 animate-pulse'}`}></div>
               <span className="text-[6px] text-zinc-600 font-black uppercase tracking-widest mono">{dbConnected ? 'SECURE_LINK' : 'OFFLINE'}</span>
+              <span className="text-[6px] text-[#D4AF37]/40 font-black uppercase tracking-widest mono ml-2">REV_4.6.1_HOT</span>
             </div>
           </div>
         </div>
@@ -126,13 +126,13 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
           <p className="text-[8px] gold-text font-bold uppercase tracking-widest italic opacity-70">ПРОВЕРЕННЫЕ ОБЪЕКТЫ / ЖИЛЬЕ / ЕДА</p>
         </button>
 
-        {/* SOS BUTTON - NEW */}
+        {/* SOS BUTTON */}
         <div className="col-span-2 relative h-24 mt-2">
            <button 
             onMouseDown={handleSOSStart}
             onMouseUp={handleSOSEnd}
             onTouchStart={handleSOSStart}
-            onTouchEnd={handleSOSStart}
+            onTouchEnd={handleSOSEnd}
             className="w-full h-full bg-red-950/20 border border-red-600/30 rounded-[30px] flex items-center justify-center gap-4 relative overflow-hidden active:scale-[0.98] transition-all"
            >
              <div className="absolute left-0 top-0 h-full bg-red-600/20 transition-all duration-100 ease-linear" style={{ width: `${sosProgress}%` }}></div>

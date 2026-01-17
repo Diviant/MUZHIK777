@@ -4,40 +4,35 @@ import { createClient } from '@supabase/supabase-js';
 const getEnvVar = (key: string): string => {
   if (typeof window !== 'undefined') {
     const override = localStorage.getItem(`OVERRIDE_SUPABASE_${key}`);
-    if (override) {
-      console.log(`[Supabase Config] Using Manual Override for ${key}`);
-      return override.trim();
-    }
+    if (override) return override.trim();
   }
   
   const variations = [
     `VITE_SUPABASE_${key}`, 
     `VITE_${key}`,
     `SUPABASE_${key}`, 
+    `NEXT_PUBLIC_SUPABASE_${key}`,
     `NEXT_PUBLIC_${key}`,
-    `NEXT_PUBLIC_MUZHIKSUPABASE_${key}`,
     `REACT_APP_SUPABASE_${key}`
   ];
   
-  const metaEnv = (import.meta as any).env || {};
+  // @ts-ignore
+  const metaEnv = import.meta.env || {};
   const processEnv = typeof process !== 'undefined' ? (process.env as any) : {};
   
   for (const v of variations) {
     const val = metaEnv[v] || processEnv[v] || (typeof window !== 'undefined' ? (window as any)[v] : undefined);
     if (val && typeof val === 'string' && val.length > 5) {
-      console.log(`[Supabase Config] Found ${key} in variable: ${v}`);
       return val.trim();
     }
   }
   
-  console.warn(`[Supabase Config] CRITICAL: ${key} not found in any environment variable!`);
   return '';
 };
 
 const config = {
   url: getEnvVar('URL'),
   key: getEnvVar('ANON_KEY'),
-  // Added serviceKey to config for administrative operations
   serviceKey: getEnvVar('SERVICE_ROLE_KEY')
 };
 
@@ -61,7 +56,6 @@ export const supabase = createClient(
   }
 );
 
-// Fix: Added getAdminClient export to satisfy requirements for server-side administrative operations (bypassing RLS)
 export const getAdminClient = () => {
   return createClient(
     config.url || PLACEHOLDER_URL,
@@ -92,7 +86,7 @@ export const saveManualConfig = (url: string, key: string) => {
 };
 
 export const clearManualConfig = () => {
-  localStorage.clear(); // Полная очистка
+  localStorage.clear();
   window.location.reload();
 };
 
