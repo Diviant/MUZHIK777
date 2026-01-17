@@ -98,6 +98,19 @@ const Feed: React.FC<Props> = ({ navigate, user }) => {
         ))}
       </div>
 
+      {/* ИНСТРУКТАЖ БУГРА (RULES) */}
+      <div className="bg-[#0f0f0f] border-l-4 border-[#D4AF37] p-5 rounded-2xl mb-6 shadow-xl relative overflow-hidden stagger-item">
+        <div className="absolute top-0 right-0 p-2 opacity-[0.03] text-4xl grayscale">👮‍♂️</div>
+        <div className="flex flex-col text-left relative z-10">
+          <h4 className="text-[9px] text-[#D4AF37] font-black uppercase tracking-[0.2em] mb-2 italic">ИНСТРУКТАЖ ПО ЭФИРУ:</h4>
+          <p className="text-[11px] text-zinc-400 font-bold italic leading-relaxed uppercase">
+            Мужики, в эфире <span className="text-white">НЕ ГРУБИМ</span> и <span className="text-white">НЕ НЕСЕМ ЧУШЬ</span>. 
+            Будь спокоен, за базар отвечай. Хейтеров и провокаторов <span className="text-red-500">БАНЬКА заблокирует автоматически</span>. 
+            Уважай братство Цеха.
+          </p>
+        </div>
+      </div>
+
       {/* NEW POST INPUT AREA */}
       <div className={`relative p-6 rounded-[35px] border transition-colors duration-500 mb-8 overflow-hidden ${
         selectedCat === 'SCAM' ? 'border-red-600/40 bg-red-900/5' : 

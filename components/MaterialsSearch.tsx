@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Screen, Location } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -24,7 +23,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Найди актуальные цены и места продажи: ${query} в регионе ${location?.name || 'Россия'}. Дай краткую сводку по ценам и надежным поставщикам.`,
+        contents: `Найди актуальные цены и места продажи: ${query} в регионе ${location?.name || 'Россия'}. ОБЯЗАТЕЛЬНО укажи адреса складов или магазинов и их контактные номера телефонов. Дай краткую сводку по ценам и надежным поставщикам.`,
         config: {
           tools: [{ googleSearch: {} }]
         }
@@ -47,7 +46,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
         <button onClick={() => navigate(Screen.PROFILE)} className="w-11 h-11 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center text-[#D4AF37] active-press shadow-xl">←</button>
         <div className="flex flex-col">
           <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">СНАБЖЕНЕЦ</h2>
-          <span className="text-[8px] text-zinc-600 font-black uppercase tracking-widest mt-1 italic mono opacity-60">SUPPLY_SCAN_MODULE</span>
+          <span className="text-[8px] text-zinc-600 font-black uppercase tracking-widest mt-1 italic mono opacity-60">SUPPLY_SCAN_v1.1</span>
         </div>
       </header>
 
@@ -101,7 +100,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
         <div className="flex-1 flex flex-col items-center justify-center py-24 opacity-10 border-2 border-dashed border-white/5 rounded-[45px]">
            <span className="text-7xl mb-6">🏗️</span>
            <p className="font-black italic uppercase tracking-widest text-center text-white">ГОТОВ К ПОИСКУ</p>
-           <p className="text-[9px] mt-2 font-bold italic">Найду лучшие цены по всей базе</p>
+           <p className="text-[9px] mt-2 font-bold italic">Найду лучшие цены и КОНТАКТЫ</p>
         </div>
       )}
     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Screen, User, Location } from '../types';
 import SOSOverlay from './SOSOverlay';
@@ -62,13 +61,13 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
 
   const modules = [
     { icon: '📡', title: 'Эфир', desc: 'ОБЩИЙ ЧАТ', screen: Screen.FEED },
-    { icon: '🗺️', title: 'Карта', desc: 'КТО РЯДОМ', screen: Screen.MAP_EXPLORER },
+    { icon: '🎫', title: 'Логистика', desc: 'ПОИСК БИЛЕТОВ', screen: Screen.LOGISTICS },
     { icon: '🏗️', title: 'Мини-CRM', desc: 'УПРАВЛЕНИЕ', screen: Screen.CRM_DASHBOARD },
-    { icon: '✅', title: 'Чек-листы', desc: 'НЕ ЗАБУДЬ', screen: Screen.CHECKLISTS },
+    { icon: '🚗', title: 'Попутчики', desc: 'ЕХАТЬ ВМЕСТЕ', screen: Screen.HITCHHIKERS },
     { icon: '📏', title: 'Инструменты', desc: 'КАЛЬКУЛЯТОРЫ', screen: Screen.CALCULATORS },
+    { icon: '🧖‍♂️', title: 'Отдых', desc: 'БАНЯ И ПИВО', screen: Screen.REST },
     { icon: '🚜', title: 'Техника', desc: 'АРЕНДА', screen: Screen.HEAVY_MACHINERY },
     { icon: '🔍', title: 'Снабженец', desc: 'МАТЕРИАЛЫ', screen: Screen.MATERIALS_SEARCH },
-    { icon: '📦', title: 'Попутка', desc: 'ЛОГИСТИКА', screen: Screen.CARGO },
   ];
 
   return (
@@ -146,78 +145,68 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
            </button>
         </div>
 
-        <button 
-          onClick={() => navigate(Screen.MAP_EXPLORER)}
-          className="h-36 bg-zinc-900/40 rounded-[30px] border border-white/5 p-6 flex flex-col text-left active-press stagger-item [animation-delay:100ms]"
-        >
-          <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl mb-auto">🗺️</div>
-          <div>
-            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none mb-1">КАРТА</h3>
-            <p className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest mono italic">КТО РЯДОМ</p>
-          </div>
-        </button>
-
-        <button 
-          onClick={() => navigate(Screen.CRM_DASHBOARD)}
-          className="h-36 bg-zinc-900/40 rounded-[30px] border border-white/5 p-6 flex flex-col text-left active-press stagger-item [animation-delay:200ms]"
-        >
-          <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl mb-auto">🏗️</div>
-          <div>
-            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none mb-1">ОБЪЕКТЫ</h3>
-            <p className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest mono italic">МОЯ СТРОЙКА</p>
-          </div>
-        </button>
-
-        <button 
-          onClick={() => navigate(Screen.CHECKLISTS)}
-          className="col-span-2 h-24 bg-gradient-to-r from-[#D4AF37] to-[#9A7D0A] text-black rounded-[30px] px-8 flex items-center gap-4 active-press shadow-lg stagger-item [animation-delay:300ms]"
-        >
-          <div className="w-12 h-12 bg-black/10 rounded-xl flex items-center justify-center text-2xl font-black shadow-inner">✅</div>
-          <div className="text-left flex-1">
-            <h3 className="text-xl font-black uppercase italic tracking-tighter leading-none">ЧЕК-ЛИСТЫ</h3>
-            <p className="text-[8px] font-bold uppercase tracking-wider italic opacity-60">ПРИЕМКА И СБОРЫ</p>
-          </div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </button>
+        {/* Grid Modules */}
+        {modules.map((mod, i) => (
+          <button 
+            key={i}
+            onClick={() => handleMenuClick({ screen: mod.screen })}
+            className="h-36 bg-zinc-900/40 rounded-[30px] border border-white/5 p-6 flex flex-col text-left active-press stagger-item shadow-lg"
+            style={{ animationDelay: `${100 + i * 50}ms` }}
+          >
+            <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl mb-auto">{mod.icon}</div>
+            <div>
+              <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none mb-1">{mod.title}</h3>
+              <p className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest mono italic">{mod.desc}</p>
+            </div>
+          </button>
+        ))}
       </div>
 
-      {/* SECTORS OVERLAY */}
+      {/* SIDE MENU OVERLAY */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[200] bg-[#050505]/98 backdrop-blur-3xl flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-300 h-full">
-          <div className="absolute inset-0 blueprint opacity-10 pointer-events-none"></div>
-          
-          <div className="flex items-center justify-between p-6 pt-safe border-b border-white/5 relative z-10 bg-[#050505]/50">
-            <div className="flex flex-col">
-              <span className="text-[8px] gold-text font-black uppercase tracking-[0.4em] mb-1 mono">SYSTEM_MODULES</span>
-              <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">СЕКТОРЫ</h2>
-            </div>
-            <button 
-              onClick={() => setIsMenuOpen(false)}
-              className="w-10 h-10 bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center text-[#D4AF37] text-lg active-press shadow-xl"
-            >
-              ✕
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 gap-px bg-white/5 flex-1 overflow-y-auto no-scrollbar relative z-10">
-            {modules.map((mod, i) => (
-              <button 
-                key={i}
-                onClick={() => handleMenuClick({ screen: mod.screen })}
-                className="bg-[#080808] p-8 text-left active:bg-[#121212] transition-colors flex flex-col justify-between group h-full min-h-[160px]"
-              >
-                <div className="text-2xl mb-4 group-hover:scale-110 transition-transform origin-left">{mod.icon}</div>
-                <div>
-                  <h3 className="gold-text font-black text-xs uppercase tracking-wider italic leading-none mb-1.5">{mod.title}</h3>
-                  <p className="text-zinc-700 text-[8px] font-black uppercase tracking-[0.2em] mono italic">{mod.desc}</p>
-                </div>
-              </button>
-            ))}
-          </div>
-
-          <div className="p-6 bg-[#050505] border-t border-white/5 flex justify-center pb-safe">
-             <span className="text-[8px] text-zinc-800 font-black uppercase tracking-[0.8em] mono italic">ID_ACCESS_CONNECTED</span>
-          </div>
+        <div className="fixed inset-0 z-[200] flex">
+           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsMenuOpen(false)}></div>
+           <div className="relative w-72 h-full bg-[#050505] border-r border-white/10 flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
+              <div className="p-8 border-b border-white/5">
+                 <h2 className="text-2xl font-black italic gold-text uppercase tracking-tighter leading-none mb-1">МЕНЮ ЦЕХА</h2>
+                 <p className="text-[6px] text-zinc-700 font-black uppercase tracking-[0.4em] mono">v4.6.1_SECURE_CHANNEL</p>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+                 {[
+                   { icon: '👷‍♂️', title: 'Совет Бугра', desc: 'AI ПОМОЩНИК', screen: Screen.BUGOR_CHAT, proRequired: true },
+                   { icon: '📊', title: 'Журнал Вахты', desc: 'СМЕТА И ДОХОДЫ', screen: Screen.VAKHTA_JOURNAL },
+                   { icon: '📝', title: 'Заметки', desc: 'ЛИЧНЫЕ ЗАПИСИ', screen: Screen.NOTES },
+                   { icon: '🏷️', title: 'Мои объявления', desc: 'УПРАВЛЕНИЕ', screen: Screen.MY_ADS },
+                   { icon: '🏆', title: 'Зал Славы', desc: 'РЕЙТИНГ', screen: Screen.RANKING },
+                   { icon: '🛠️', title: 'Мастерская', desc: 'ДИАГНОСТИКА', screen: Screen.DIAGNOSTIC },
+                 ].map((item, i) => (
+                   <button 
+                    key={i} 
+                    onClick={() => handleMenuClick(item)}
+                    className="w-full p-4 rounded-2xl bg-zinc-900/40 border border-white/5 flex items-center gap-4 active-press text-left group"
+                   >
+                     <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl group-hover:scale-110 transition-transform">
+                       {item.icon}
+                     </div>
+                     <div className="flex flex-col">
+                        <span className="text-[10px] font-black uppercase text-white italic group-hover:text-[#D4AF37] transition-colors">{item.title}</span>
+                        <span className="text-[6px] text-zinc-700 font-black uppercase tracking-widest mono">{item.desc}</span>
+                     </div>
+                     {item.proRequired && !user?.isPro && (
+                       <span className="ml-auto text-[8px]">🔒</span>
+                     )}
+                   </button>
+                 ))}
+              </div>
+              <div className="p-6 border-t border-white/5">
+                 <button 
+                   onClick={() => setIsMenuOpen(false)}
+                   className="w-full py-4 bg-zinc-900 border border-white/5 rounded-2xl text-zinc-600 text-[8px] font-black uppercase tracking-[0.3em] italic"
+                 >
+                   ЗАКРЫТЬ ТЕРМИНАЛ
+                 </button>
+              </div>
+           </div>
         </div>
       )}
     </div>

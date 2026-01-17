@@ -1,8 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
 import { Screen } from '../types';
-// Add missing import for Layout component
-import Layout from './Layout';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -50,9 +48,8 @@ const Calculators: React.FC<Props> = ({ navigate }) => {
     }
   }, [calcType, inputs]);
 
-  const resultUnit = calcType === 'TILE' ? 'шт.' : calcType === 'METAL' ? 'кг' : 'м³';
-  // Fix: Use imported Layout component and provide valid JSX content
-  if (calcType === 'ROOF') return <Layout title="КРОВЛЯ" onBack={() => navigate(Screen.HOME)}><div className="py-20 text-center text-zinc-600 font-black uppercase italic">Расчет кровли в разработке...</div></Layout>;
+  // Fix: Added 'м²' for ROOF calculation and removed the early return for 'ROOF' that caused type narrowing errors in the JSX below
+  const resultUnit = calcType === 'TILE' ? 'шт.' : calcType === 'METAL' ? 'кг' : calcType === 'ROOF' ? 'м²' : 'м³';
 
   return (
     <div className="flex-1 flex flex-col p-5 pb-32 overflow-y-auto no-scrollbar bg-[#080808]">

@@ -33,7 +33,10 @@ export enum Screen {
   MAP_EXPLORER = 'MAP_EXPLORER',
   CRM_DASHBOARD = 'CRM_DASHBOARD',
   CHECKLISTS = 'CHECKLISTS',
-  SOS_SETTINGS = 'SOS_SETTINGS'
+  SOS_SETTINGS = 'SOS_SETTINGS',
+  LOGISTICS = 'LOGISTICS',
+  HITCHHIKERS = 'HITCHHIKERS',
+  REST = 'REST'
 }
 
 export type SOSScenario = 'ACCIDENT' | 'INJURY' | 'STUCK' | 'THREAT' | 'OTHER';
@@ -154,6 +157,22 @@ export interface Conversation {
 export interface Location { id: string; name: string; type: 'region' | 'city' | 'settlement'; parentId?: string; count?: number; }
 export interface ServiceRequest { id: string; authorId?: string; category: string; title: string; description: string; price: string; author: string; contact: string; cityId?: string; }
 export interface HitchhikingCargo { id: string; authorId?: string; title: string; routeFrom: string; routeTo: string; cargoType: string; weight: string; price: string; departureDate: string; description: string; contact: string; }
+
+export interface Hitchhiker {
+  id: string;
+  authorId: string;
+  name: string;
+  routeFrom: string;
+  routeTo: string;
+  departureDate: string;
+  price: string;
+  carModel?: string;
+  seats: number;
+  description: string;
+  contact: string;
+  canTakeCargo?: boolean;
+}
+
 export interface TeamMember { role: string; count: number; }
 export interface Team { id: string; authorId?: string; name: string; leader: string; category: string; memberCount: number; structure: TeamMember[]; equipment: string[]; description: string; rating: number; cityId?: string; contact: string; }
 export interface AutoService { id: string; authorId?: string; name: string; category: string; address: string; description: string; rating: number; cityId?: string; contact: string; features: string[]; }

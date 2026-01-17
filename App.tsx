@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Screen, User, Job, ServiceRequest, Location, Team, AutoService, HeavyMachinery, HitchhikingCargo, Conversation, MarketItem } from './types';
+import { Screen, User, Job, ServiceRequest, Location, Team, AutoService, HeavyMachinery, HitchhikingCargo, Conversation, MarketItem, Hitchhiker } from './types';
 import { db } from './database';
 import Welcome from './components/Welcome';
 import Auth from './components/Auth';
@@ -21,6 +20,7 @@ import Calculators from './components/Calculators';
 import AutoServices from './components/AutoServices';
 import HeavyMachineryScreen from './components/HeavyMachinery';
 import HitchhikingCargoScreen from './components/HitchhikingCargo';
+import Hitchhikers from './components/Hitchhikers';
 import Teams from './components/Teams';
 import AdminLogin from './components/AdminLogin';
 import AdminVacancies from './components/AdminVacancies';
@@ -31,6 +31,8 @@ import VakhtaCenter from './components/VakhtaCenter';
 import MapExplorer from './components/MapExplorer';
 import CRMDashboard from './components/CRMDashboard';
 import Checklists from './components/Checklists';
+import Logistics from './components/Logistics';
+import Rest from './components/Rest';
 import { isSupabaseConfigured } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -45,6 +47,7 @@ const App: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [marketItems, setMarketItems] = useState<MarketItem[]>([]);
   const [cargo, setCargo] = useState<HitchhikingCargo[]>([]);
+  const [hitchhikers, setHitchhikers] = useState<Hitchhiker[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [autoServices, setAutoServices] = useState<AutoService[]>([]);
   const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
@@ -68,10 +71,11 @@ const App: React.FC = () => {
         setCurrentScreen(Screen.HOME);
       }
       
-      const [jobsData, marketData, cargoData, teamsData, autoData, machineryData] = await Promise.all([
+      const [jobsData, marketData, cargoData, hitchData, teamsData, autoData, machineryData] = await Promise.all([
         db.getJobs(),
         db.getMarketItems(),
         db.getCargo(),
+        db.getHitchhikers(),
         db.getTeams(),
         db.getAutoServices(),
         db.getMachinery()
@@ -80,6 +84,7 @@ const App: React.FC = () => {
       setJobs(jobsData);
       setMarketItems(marketData);
       setCargo(cargoData);
+      setHitchhikers(hitchData);
       setTeams(teamsData);
       setAutoServices(autoData);
       setMachinery(machineryData);
@@ -139,6 +144,7 @@ const App: React.FC = () => {
       case Screen.HEAVY_MACHINERY: return <HeavyMachineryScreen machinery={machinery} navigate={navigate} onAddMachinery={async (m) => { await db.addMachinery(m); setMachinery(await db.getMachinery()); }} location={selectedLocation} />;
       case Screen.AUTO_SERVICES: return <AutoServices autoServices={autoServices} navigate={navigate} onAddService={async (as) => { await db.addAutoService(as); setAutoServices(await db.getAutoServices()); }} location={selectedLocation} />;
       case Screen.CARGO: return <HitchhikingCargoScreen cargo={cargo} navigate={navigate} onAddCargo={async (c) => { await db.addCargo(c); setCargo(await db.getCargo()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.HITCHHIKERS: return <Hitchhikers hitchhikers={hitchhikers} navigate={navigate} onAddHitchhiker={async (h) => { await db.addHitchhiker(h); setHitchhikers(await db.getHitchhikers()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CONTRACT_GEN: return <ContractGen navigate={navigate} user={user!} />;
       case Screen.CALCULATORS: return <Calculators navigate={navigate} />;
       case Screen.TEAMS: return <Teams teams={teams} navigate={navigate} onAddTeam={async (t) => { await db.addTeam(t); setTeams(await db.getTeams()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
@@ -151,9 +157,11 @@ const App: React.FC = () => {
       case Screen.MAP_EXPLORER: return <MapExplorer navigate={navigate} user={user!} />;
       case Screen.CRM_DASHBOARD: return <CRMDashboard user={user!} navigate={navigate} />;
       case Screen.CHECKLISTS: return <Checklists navigate={navigate} />;
+      case Screen.LOGISTICS: return <Logistics navigate={navigate} user={user} />;
+      case Screen.REST: return <Rest navigate={navigate} location={selectedLocation} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
-  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest]);
+  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest]);
 
   const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER].includes(currentScreen);
 
