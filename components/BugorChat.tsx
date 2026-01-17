@@ -79,15 +79,15 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
 
   if (!user.isPro) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0E0E0E] text-center">
-         <div className="w-24 h-24 bg-[#F5C518]/10 rounded-full flex items-center justify-center mb-6 border border-[#F5C518]/20">
-            <span className="text-4xl">🔐</span>
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#050505] text-center h-full">
+         <div className="w-24 h-24 bg-[#D4AF37]/10 rounded-[35px] flex items-center justify-center mb-10 border border-[#D4AF37]/20 shadow-2xl">
+            <span className="text-5xl">🔐</span>
          </div>
-         <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">ДОСТУП ОГРАНИЧЕН</h2>
-         <p className="text-zinc-500 text-sm font-bold uppercase tracking-widest leading-relaxed mb-8">
+         <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4 leading-none">ДОСТУП ОГРАНИЧЕН</h2>
+         <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em] leading-relaxed mb-10 italic">
             Бугор консультирует только PRO-мужиков. Активируй статус в профиле!
          </p>
-         <button onClick={() => navigate(Screen.PROFILE)} className="bg-[#F5C518] text-black font-black px-8 py-4 rounded-2xl uppercase italic tracking-tighter shadow-xl shadow-[#F5C518]/20">
+         <button onClick={() => navigate(Screen.PROFILE)} className="bg-[#D4AF37] text-black font-black px-12 py-5 rounded-[22px] uppercase italic tracking-tighter shadow-xl shadow-[#D4AF37]/20 active:scale-95 transition-all">
             СТАТЬ PRO-МАСТЕРОМ
          </button>
       </div>
@@ -95,44 +95,49 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#0E0E0E] overflow-hidden relative">
-      <header className="flex items-center justify-between p-4 bg-[#161616] border-b border-white/5 z-20">
-        <button onClick={() => navigate(Screen.HOME)} className="w-8 h-8 flex items-center justify-center text-[#F5C518]">←</button>
-        <div className="flex items-center gap-3">
-           <div className="w-10 h-10 bg-[#F5C518] rounded-xl flex items-center justify-center text-black">
-              <span className="text-xl">👷‍♂️</span>
+    <div className="flex-1 flex flex-col h-full bg-[#050505] overflow-hidden relative">
+      <header className="flex items-center justify-between p-6 bg-[#050505] border-b border-white/5 z-20">
+        <button onClick={() => navigate(Screen.HOME)} className="w-11 h-11 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center text-[#D4AF37] active-press shadow-xl">←</button>
+        <div className="flex items-center gap-4">
+           <div className="w-11 h-11 bg-[#D4AF37] rounded-xl flex items-center justify-center text-black shadow-lg">
+              <span className="text-2xl">👷‍♂️</span>
            </div>
-           <div className="flex flex-col items-start">
-              <span className="text-sm font-black text-white uppercase italic leading-none">БУГОР (AI)</span>
-              <span className="text-[8px] text-green-500 font-black uppercase tracking-widest mt-1">В бытовке, на связи</span>
+           <div className="flex flex-col items-start text-left">
+              <span className="text-sm font-black text-white uppercase italic leading-none mb-1">БУГОР (AI)</span>
+              <span className="text-[7px] text-green-500 font-black uppercase tracking-widest mono">В БЫТОВКЕ / ONLINE</span>
            </div>
         </div>
-        <div className="w-8"></div>
+        <div className="w-11"></div>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar pb-32">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-5 no-scrollbar pb-32">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.senderId === 'bugor' ? 'justify-start' : 'justify-end'}`}>
-            <div className={`max-w-[85%] p-4 rounded-2xl border border-white/5 ${msg.senderId === 'bugor' ? 'bg-[#1e1e1e] text-zinc-300 rounded-tl-none' : 'bg-[#F5C518] text-black font-bold rounded-tr-none'}`}>
-              <p className="text-[13px] leading-relaxed italic whitespace-pre-wrap">{msg.text}</p>
+            <div className={`max-w-[85%] p-5 rounded-[28px] border ${msg.senderId === 'bugor' ? 'bg-[#0f0f0f] border-white/5 text-zinc-300 rounded-tl-none' : 'bg-[#D4AF37] text-black font-black italic rounded-tr-none shadow-xl shadow-[#D4AF37]/5'}`}>
+              <p className="text-[14px] leading-relaxed italic whitespace-pre-wrap">{msg.text}</p>
             </div>
           </div>
         ))}
-        {loading && <div className="text-zinc-600 text-[10px] font-black uppercase italic animate-pulse ml-2">Бугор что-то пишет...</div>}
+        {loading && <div className="text-zinc-800 text-[8px] font-black uppercase italic animate-pulse ml-2 mono tracking-widest">BUGOR_WRITING_LOG...</div>}
       </div>
 
-      <div className="absolute bottom-6 left-5 right-5">
-        <div className="glass p-2 rounded-[32px] border border-white/10 flex items-center gap-2">
+      <div className="absolute bottom-6 left-6 right-6">
+        <div className="bg-[#121212] p-2 rounded-[35px] border border-white/10 flex items-center gap-2 shadow-2xl relative">
+           <div className="absolute -top-[1px] left-10 right-10 h-[1px] bg-[#D4AF37]/30"></div>
            <input 
              type="text" 
              value={inputText}
              onChange={e => setInputText(e.target.value)}
              onKeyPress={e => e.key === 'Enter' && handleSend()}
              placeholder="Спроси по делу..."
-             className="flex-1 bg-transparent px-4 text-white text-sm outline-none font-bold"
+             className="flex-1 bg-transparent px-6 text-white text-sm outline-none font-bold placeholder:text-zinc-800 h-14"
            />
-           <button onClick={handleSend} disabled={loading} className={`w-12 h-12 rounded-full flex items-center justify-center ${inputText.trim() ? 'bg-[#F5C518] text-black' : 'bg-zinc-800 text-zinc-600'}`}>
-              ➤
+           <button 
+            onClick={handleSend} 
+            disabled={loading} 
+            className={`w-14 h-14 rounded-[28px] flex items-center justify-center transition-all ${inputText.trim() ? 'bg-[#D4AF37] text-black shadow-lg' : 'bg-zinc-800 text-zinc-600'}`}
+           >
+              <span className="text-lg">➤</span>
            </button>
         </div>
       </div>

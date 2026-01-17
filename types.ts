@@ -27,7 +27,26 @@ export enum Screen {
   NOTES = 'NOTES',
   FEED = 'FEED',
   CONTRACT_GEN = 'CONTRACT_GEN',
-  CALCULATORS = 'CALCULATORS'
+  CALCULATORS = 'CALCULATORS',
+  GALLERY = 'GALLERY',
+  VAKHTA_CENTER = 'VAKHTA_CENTER',
+  MAP_EXPLORER = 'MAP_EXPLORER',
+  CRM_DASHBOARD = 'CRM_DASHBOARD',
+  CHECKLISTS = 'CHECKLISTS',
+  SOS_SETTINGS = 'SOS_SETTINGS'
+}
+
+export type SOSScenario = 'ACCIDENT' | 'INJURY' | 'STUCK' | 'THREAT' | 'OTHER';
+
+export interface SOSSignal {
+  id: string;
+  userId: string;
+  userName: string;
+  scenario: SOSScenario;
+  lat: number;
+  lng: number;
+  timestamp: number;
+  status: 'SENT' | 'HELPING' | 'RESOLVED';
 }
 
 export interface User {
@@ -40,6 +59,8 @@ export interface User {
   isPro: boolean;
   isAdmin: boolean;
   isVerified: boolean;
+  verificationType?: 'PASSPORT' | 'IP' | 'NONE';
+  badges?: string[];
   isReliable: boolean;
   isBanned?: boolean;
   referralCode: string;
@@ -48,10 +69,37 @@ export interface User {
   isDonor: boolean;
   level: string;
   specialization: string[];
-  portfolioImages?: string[]; // Новое поле
+  portfolioImages?: string[]; 
+  trustedContacts?: string[]; // Номера телефонов доверенных лиц
 }
 
-// ... остальные интерфейсы без изменений
+export interface Job { 
+  id: string; 
+  authorId?: string; 
+  title: string; 
+  salary: string; 
+  region: string; 
+  cityId?: string; 
+  isVahta: boolean; 
+  vakhtaDuration?: string; 
+  isVerifiedVakhta?: boolean;
+  housing: boolean; 
+  food?: boolean;
+  travel?: boolean;
+  description: string; 
+  contact: string; 
+}
+
+export interface CRMProject {
+  id: string;
+  name: string;
+  address: string;
+  workersCount: number;
+  status: 'ACTIVE' | 'DONE' | 'PENDING';
+  budget: string;
+  lastPhoto?: string;
+}
+
 export interface FeedPost {
   id: string;
   authorId: string;
@@ -60,9 +108,11 @@ export interface FeedPost {
   content: string;
   imageUrl?: string;
   createdAt: number;
+  isSos?: boolean;
 }
 export interface VakhtaEntry {
   startDate: string;
+  endDate: string;
   expectedSalary: number;
   advances: number;
   travelExpenses: number;
@@ -102,7 +152,6 @@ export interface Conversation {
   unreadCount: number;
 }
 export interface Location { id: string; name: string; type: 'region' | 'city' | 'settlement'; parentId?: string; count?: number; }
-export interface Job { id: string; authorId?: string; title: string; salary: string; region: string; cityId?: string; isVahta: boolean; housing: boolean; description: string; contact: string; }
 export interface ServiceRequest { id: string; authorId?: string; category: string; title: string; description: string; price: string; author: string; contact: string; cityId?: string; }
 export interface HitchhikingCargo { id: string; authorId?: string; title: string; routeFrom: string; routeTo: string; cargoType: string; weight: string; price: string; departureDate: string; description: string; contact: string; }
 export interface TeamMember { role: string; count: number; }

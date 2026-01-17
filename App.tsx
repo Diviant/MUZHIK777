@@ -6,10 +6,8 @@ import Welcome from './components/Welcome';
 import Auth from './components/Auth';
 import Home from './components/Home';
 import Jobs from './components/Jobs';
-import Services from './components/Services';
-import Profile from './components/Profile';
-import Referral from './components/Referral';
 import Ranking from './components/Ranking';
+import Profile from './components/Profile';
 import Marketplace from './components/Marketplace';
 import ChatList from './components/ChatList';
 import ChatDetail from './components/ChatDetail';
@@ -20,20 +18,36 @@ import Notes from './components/Notes';
 import Feed from './components/Feed';
 import ContractGen from './components/ContractGen';
 import Calculators from './components/Calculators';
+import AutoServices from './components/AutoServices';
+import HeavyMachineryScreen from './components/HeavyMachinery';
+import HitchhikingCargoScreen from './components/HitchhikingCargo';
+import Teams from './components/Teams';
+import AdminLogin from './components/AdminLogin';
+import AdminVacancies from './components/AdminVacancies';
 import Diagnostic from './components/Diagnostic';
+import Gallery from './components/Gallery';
+import Referral from './components/Referral';
+import VakhtaCenter from './components/VakhtaCenter';
+import MapExplorer from './components/MapExplorer';
+import CRMDashboard from './components/CRMDashboard';
+import Checklists from './components/Checklists';
 import { isSupabaseConfigured } from './lib/supabase';
 
 const App: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<Screen>(Screen.WELCOME);
   const [user, setUser] = useState<User | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [activeChat, setActiveChat] = useState<Conversation | null>(null);
   const [dbConnected, setDbConnected] = useState<boolean | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [services, setServices] = useState<ServiceRequest[]>([]);
   const [marketItems, setMarketItems] = useState<MarketItem[]>([]);
+  const [cargo, setCargo] = useState<HitchhikingCargo[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [autoServices, setAutoServices] = useState<AutoService[]>([]);
+  const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
 
   const initData = useCallback(async () => {
     setIsInitializing(true);
@@ -50,16 +64,25 @@ const App: React.FC = () => {
       const sessionUser = await db.getCurrentSessionUser();
       if (sessionUser) {
         setUser(sessionUser);
+        setIsGuest(false);
         setCurrentScreen(Screen.HOME);
       }
       
-      const [jobsData, marketData] = await Promise.all([
+      const [jobsData, marketData, cargoData, teamsData, autoData, machineryData] = await Promise.all([
         db.getJobs(),
-        db.getMarketItems()
+        db.getMarketItems(),
+        db.getCargo(),
+        db.getTeams(),
+        db.getAutoServices(),
+        db.getMachinery()
       ]);
 
       setJobs(jobsData);
       setMarketItems(marketData);
+      setCargo(cargoData);
+      setTeams(teamsData);
+      setAutoServices(autoData);
+      setMachinery(machineryData);
     } catch (e: any) {
       console.error("Init failure:", e);
     } finally {
@@ -71,57 +94,93 @@ const App: React.FC = () => {
     initData();
   }, [initData]);
 
-  const updateUser = useCallback(async (updatedFields: Partial<User>) => {
-    if (!user) return;
-    const next = { ...user, ...updatedFields };
-    setUser(next);
-    await db.saveUser(next);
-  }, [user]);
+  const handleGuestEntry = useCallback(() => {
+    setIsGuest(true);
+    setUser({
+      id: 'guest',
+      username: 'guest_user',
+      firstName: 'Гость',
+      rating: 0,
+      points: 0,
+      isPro: false,
+      isAdmin: false,
+      isVerified: false,
+      isReliable: true,
+      referralCode: '',
+      dealsCount: 0,
+      isDonor: false,
+      level: 'Новичок',
+      specialization: []
+    });
+    setCurrentScreen(Screen.HOME);
+  }, []);
 
   const navigate = useCallback((screen: Screen) => {
     setCurrentScreen(screen);
   }, []);
 
   const currentView = useMemo(() => {
-    if (isInitializing) return <div className="flex-1 bg-black flex items-center justify-center text-[#F5C518] font-black italic">ЦЕХ / ЗАГРУЗКА...</div>;
+    if (isInitializing) return <div className="flex-1 bg-black flex items-center justify-center text-[#D4AF37] font-black italic">ЦЕХ / ЗАГРУЗКА...</div>;
 
     switch (currentScreen) {
-      case Screen.WELCOME: return <Welcome onStart={() => navigate(user ? Screen.HOME : Screen.AUTH)} />;
-      case Screen.AUTH: return <Auth onSuccess={() => initData()} navigate={navigate} />;
+      case Screen.WELCOME: return <Welcome onStart={() => navigate(user ? Screen.HOME : Screen.AUTH)} onGuest={handleGuestEntry} navigate={navigate} />;
+      case Screen.AUTH: return <Auth onSuccess={() => initData()} onGuest={handleGuestEntry} navigate={navigate} />;
       case Screen.HOME: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
-      case Screen.JOBS: return <Jobs jobs={jobs} user={user} navigate={navigate} onAddJob={async (j) => { await db.addJob(j); setJobs(await db.getJobs()); }} onUpdateUser={updateUser} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
-      case Screen.PROFILE: return <Profile user={user} navigate={navigate} onUpdate={updateUser} dbConnected={dbConnected} />;
+      case Screen.JOBS: return <Jobs jobs={jobs} user={user} navigate={navigate} onAddJob={async (j) => { await db.addJob(j); setJobs(await db.getJobs()); }} onUpdateUser={f => setUser(prev => prev ? {...prev, ...f} : null)} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.RANKING: return <Ranking navigate={navigate} currentUser={user} />;
+      case Screen.PROFILE: return <Profile user={user} navigate={navigate} onUpdate={f => setUser(prev => prev ? {...prev, ...f} : null)} dbConnected={dbConnected} isGuest={isGuest} />;
       case Screen.VAKHTA_JOURNAL: return <VakhtaJournal navigate={navigate} user={user} />;
-      case Screen.MATERIALS_SEARCH: return <MaterialsSearch navigate={navigate} location={selectedLocation} />;
-      case Screen.NOTES: return <Notes navigate={navigate} user={user} />;
       case Screen.FEED: return <Feed navigate={navigate} user={user!} />;
-      case Screen.CONTRACT_GEN: return <ContractGen navigate={navigate} user={user!} />;
-      case Screen.CALCULATORS: return <Calculators navigate={navigate} />;
       case Screen.MARKETPLACE: return <Marketplace items={marketItems} user={user!} navigate={navigate} onAddItem={async (item) => { await db.addMarketItem(item); setMarketItems(await db.getMarketItems()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CHATS: return <ChatList user={user!} navigate={navigate} onSelectChat={(c) => { setActiveChat(c); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CHAT_DETAIL: return <ChatDetail chat={activeChat} user={user!} navigate={navigate} />;
       case Screen.BUGOR_CHAT: return <BugorChat user={user!} navigate={navigate} />;
-      case Screen.DIAGNOSTIC: return <Diagnostic navigate={navigate} onRefresh={initData} />;
+      case Screen.MATERIALS_SEARCH: return <MaterialsSearch navigate={navigate} location={selectedLocation} />;
+      case Screen.HEAVY_MACHINERY: return <HeavyMachineryScreen machinery={machinery} navigate={navigate} onAddMachinery={async (m) => { await db.addMachinery(m); setMachinery(await db.getMachinery()); }} location={selectedLocation} />;
+      case Screen.AUTO_SERVICES: return <AutoServices autoServices={autoServices} navigate={navigate} onAddService={async (as) => { await db.addAutoService(as); setAutoServices(await db.getAutoServices()); }} location={selectedLocation} />;
+      case Screen.CARGO: return <HitchhikingCargoScreen cargo={cargo} navigate={navigate} onAddCargo={async (c) => { await db.addCargo(c); setCargo(await db.getCargo()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.CONTRACT_GEN: return <ContractGen navigate={navigate} user={user!} />;
+      case Screen.CALCULATORS: return <Calculators navigate={navigate} />;
+      case Screen.TEAMS: return <Teams teams={teams} navigate={navigate} onAddTeam={async (t) => { await db.addTeam(t); setTeams(await db.getTeams()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.ADMIN_LOGIN: return <AdminLogin navigate={navigate} />;
+      case Screen.ADMIN_VACANCIES: return <AdminVacancies navigate={navigate} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.DIAGNOSTIC: return <Diagnostic navigate={navigate} onRefresh={() => initData()} />;
+      case Screen.GALLERY: return <Gallery user={user!} navigate={navigate} onUpdate={f => setUser(prev => prev ? {...prev, ...f} : null)} />;
+      case Screen.REFERRAL: return <Referral user={user} navigate={navigate} onBonusClaim={(p) => setUser(prev => prev ? {...prev, points: prev.points + p} : null)} />;
+      case Screen.VAKHTA_CENTER: return <VakhtaCenter jobs={jobs} user={user!} navigate={navigate} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.MAP_EXPLORER: return <MapExplorer navigate={navigate} user={user!} />;
+      case Screen.CRM_DASHBOARD: return <CRMDashboard user={user!} navigate={navigate} />;
+      case Screen.CHECKLISTS: return <Checklists navigate={navigate} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
-  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, selectedLocation, dbConnected, initData, navigate, updateUser]);
+  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest]);
 
-  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.VAKHTA_JOURNAL, Screen.MATERIALS_SEARCH, Screen.NOTES, Screen.DIAGNOSTIC, Screen.FEED, Screen.CONTRACT_GEN, Screen.CALCULATORS].includes(currentScreen);
+  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER].includes(currentScreen);
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#080808]">
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#050505]">
       <main className="flex-1 flex flex-col overflow-hidden">
         {currentView}
       </main>
       
       {showNav && (
-        <div className="fixed bottom-6 left-5 right-5 h-20 z-[100]">
-          <nav className="w-full h-full bg-[#121212]/90 backdrop-blur-xl rounded-[30px] border border-white/5 flex items-center justify-around px-2 shadow-2xl">
-            <NavButton active={currentScreen === Screen.HOME} onClick={() => navigate(Screen.HOME)} label="Цех">🏠</NavButton>
-            <NavButton active={currentScreen === Screen.JOBS} onClick={() => navigate(Screen.JOBS)} label="Работа">💼</NavButton>
-            <NavButton active={currentScreen === Screen.MARKETPLACE} onClick={() => navigate(Screen.MARKETPLACE)} label="Базар">📦</NavButton>
-            <NavButton active={currentScreen === Screen.CHATS} onClick={() => navigate(Screen.CHATS)} label="Чат">💬</NavButton>
-            <NavButton active={currentScreen === Screen.PROFILE} onClick={() => navigate(Screen.PROFILE)} label="Я">👤</NavButton>
+        <div className="fixed bottom-0 left-0 right-0 h-16 z-[100] pb-safe">
+          <nav className="w-full h-full bg-[#080808]/90 backdrop-blur-2xl border-t border-white/5 flex items-center justify-around px-2 shadow-2xl">
+            <NavButton active={currentScreen === Screen.HOME} onClick={() => navigate(Screen.HOME)} label="Цех">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </NavButton>
+            <NavButton active={currentScreen === Screen.JOBS || currentScreen === Screen.VAKHTA_CENTER} onClick={() => navigate(Screen.VAKHTA_CENTER)} label="Вахта">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </NavButton>
+            <NavButton active={currentScreen === Screen.MAP_EXPLORER} onClick={() => navigate(Screen.MAP_EXPLORER)} label="Карта">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </NavButton>
+            <NavButton active={currentScreen === Screen.CHATS} onClick={() => navigate(Screen.CHATS)} label="Чат">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+            </NavButton>
+            <NavButton active={currentScreen === Screen.PROFILE || currentScreen === Screen.CRM_DASHBOARD} onClick={() => navigate(Screen.PROFILE)} label="Я">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </NavButton>
           </nav>
         </div>
       )}
@@ -130,9 +189,9 @@ const App: React.FC = () => {
 };
 
 const NavButton: React.FC<{active: boolean, onClick: () => void, label: string, children: React.ReactNode}> = ({active, onClick, label, children}) => (
-  <button onClick={onClick} className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${active ? 'text-[#F5C518]' : 'text-zinc-600'}`}>
-    <span className={`text-xl mb-0.5 ${active ? 'scale-110' : ''}`}>{children}</span>
-    <span className="text-[8px] font-black uppercase tracking-widest">{label}</span>
+  <button onClick={onClick} className={`flex flex-col items-center justify-center flex-1 py-1 transition-all ${active ? 'text-[#D4AF37]' : 'text-zinc-600'}`}>
+    <span className={`flex items-center justify-center mb-0.5 ${active ? 'scale-110' : ''}`}>{children}</span>
+    <span className="text-[7px] font-black uppercase tracking-widest leading-none mt-0.5">{label}</span>
   </button>
 );
 
