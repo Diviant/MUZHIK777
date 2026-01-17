@@ -43,6 +43,7 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
     };
 
     setMessages(prev => [...prev, userMsg]);
+    const currentInput = inputText;
     setInputText('');
     setLoading(true);
 
@@ -56,7 +57,7 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: inputText,
+        contents: currentInput,
         config: {
           systemInstruction: `Ты — "Бугор", цифровой прораб и наставник в экосистеме "ЦЕХ". 
           Твой стиль: суровый, профессиональный, басовитый. Ты уважаешь труд и честный заработок.
@@ -80,8 +81,8 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
     } catch (err: any) {
       console.error("BUGOR_API_ERROR:", err);
       const errorMsg = err.message === 'API_KEY_MISSING' 
-        ? 'Ошибка: Ключ API не обнаружен в системе. Обратитесь к администратору.' 
-        : 'Сбой связи с Бугром. Возможно, лимиты ключа или плохой интернет.';
+        ? 'Ошибка: Ключ API не обнаружен. Зайди в "Мастерская -> AI_КЛЮЧ".' 
+        : 'Сбой связи с Бугром. Проверь лимиты ключа или интернет.';
       setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: errorMsg, timestamp: Date.now() }]);
     } finally {
       setLoading(false);
