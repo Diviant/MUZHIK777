@@ -11,8 +11,8 @@ class MuzhikDatabase {
   private async safeQuery<T>(query: PromiseLike<{ data: T | null; error: any }>, fallback: T): Promise<T> {
     if (!isSupabaseConfigured()) return fallback;
     
-    // Создаем гонку: запрос против таймаута на 5 секунд
-    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 5000));
+    // Создаем гонку: запрос против таймаута на 3 секунды
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 3000));
     
     try {
       const result: any = await Promise.race([query, timeout]);
@@ -22,7 +22,7 @@ class MuzhikDatabase {
       }
       return result.data ?? fallback;
     } catch (e) { 
-      console.error("Query Exception (Timeout or Network):", e);
+      console.warn("Database safety fallback triggered (Timeout or Network):", e);
       return fallback; 
     }
   }
@@ -119,14 +119,15 @@ class MuzhikDatabase {
 
   async getNotes(userId: string): Promise<Note[]> { 
     if (!this.isValidUuid(userId)) return [];
-    return this.safeQuery(
+    const data = await this.safeQuery(
       supabase.from('notes').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
       []
-    ).then(data => data.map(n => ({ 
+    );
+    return data.map(n => ({ 
       id: n.id, 
       text: n.text, 
       timestamp: new Date(n.created_at).getTime() 
-    })));
+    }));
   }
   
   async addNote(userId: string, text: string): Promise<Note | null> { 

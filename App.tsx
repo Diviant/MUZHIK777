@@ -53,52 +53,35 @@ const App: React.FC = () => {
   const [autoServices, setAutoServices] = useState<AutoService[]>([]);
   const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
 
-  // Быстрая фоновая загрузка контента
-  const fetchContent = useCallback(async () => {
-    try {
-      // Запускаем все запросы параллельно, не дожидаясь их завершения для отрисовки UI
-      db.getJobs().then(setJobs).catch(() => {});
-      db.getMarketItems().then(setMarketItems).catch(() => {});
-      db.getCargo().then(setCargo).catch(() => {});
-      db.getHitchhikers().then(setHitchhikers).catch(() => {});
-      db.getTeams().then(setTeams).catch(() => {});
-      db.getAutoServices().then(setAutoServices).catch(() => {});
-      db.getMachinery().then(setMachinery).catch(() => {});
-    } catch (e) {
-      console.warn("Silent background fetch warning");
-    }
+  const fetchContent = useCallback(() => {
+    // Асинхронная фоновая загрузка - не блокирует UI
+    db.getJobs().then(setJobs).catch(() => {});
+    db.getMarketItems().then(setMarketItems).catch(() => {});
+    db.getCargo().then(setCargo).catch(() => {});
+    db.getHitchhikers().then(setHitchhikers).catch(() => {});
+    db.getTeams().then(setTeams).catch(() => {});
+    db.getAutoServices().then(setAutoServices).catch(() => {});
+    db.getMachinery().then(setMachinery).catch(() => {});
   }, []);
 
   const initData = useCallback(async () => {
-    // 1. Проверяем конфиг сразу (синхронно)
-    if (!isSupabaseConfigured()) {
-      setDbConnected(false);
+    // 1. Показываем UI сразу, если конфиг базы есть
+    if (isSupabaseConfigured()) {
       setIsInitializing(false);
-      return;
-    }
-
-    try {
-      // 2. Сначала проверяем сессию — это быстро
+      
+      // 2. Проверяем сессию в фоне
       const sessionUser = await db.getCurrentSessionUser();
       if (sessionUser) {
         setUser(sessionUser);
         setIsGuest(false);
         setCurrentScreen(Screen.HOME);
         setDbConnected(true);
-        setIsInitializing(false); // Отпускаем лоадер сразу после сессии
-        fetchContent(); // Контент грузим в фоне
-        return;
+        fetchContent();
       }
-
-      // 3. Если сессии нет, показываем Welcome
+    } else {
+      // Если базы нет совсем - работаем в оффлайн-режиме (демо)
       setIsInitializing(false);
-      
-      // 4. Тест соединения делаем в фоне, чтобы не вешать экран
-      db.testConnection().then(res => setDbConnected(res.success));
-    } catch (e: any) {
-      console.error("Init failed:", e);
-      setIsInitializing(false);
-      setCurrentScreen(Screen.WELCOME);
+      setDbConnected(false);
     }
   }, [fetchContent]);
 
@@ -135,8 +118,8 @@ const App: React.FC = () => {
   const currentView = useMemo(() => {
     if (isInitializing) return (
       <div className="flex-1 bg-black flex flex-col items-center justify-center">
-        <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-6"></div>
-        <div className="text-[#D4AF37] font-black italic text-[10px] tracking-[0.5em] uppercase animate-pulse">ЦЕХ / ЗАГРУЗКА...</div>
+        <div className="w-10 h-10 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-6"></div>
+        <div className="text-[#D4AF37] font-black italic text-[9px] tracking-[0.6em] uppercase animate-pulse">ЦЕХ / СОЕДИНЕНИЕ</div>
       </div>
     );
 
@@ -144,23 +127,23 @@ const App: React.FC = () => {
       case Screen.WELCOME: return <Welcome onStart={() => navigate(user ? Screen.HOME : Screen.AUTH)} onGuest={handleGuestEntry} navigate={navigate} />;
       case Screen.AUTH: return <Auth onSuccess={() => initData()} onGuest={handleGuestEntry} navigate={navigate} />;
       case Screen.HOME: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
-      case Screen.JOBS: return <Jobs jobs={jobs} user={user} navigate={navigate} onAddJob={async (j) => { await db.addJob(j); setJobs(await db.getJobs()); }} onUpdateUser={f => setUser(prev => prev ? {...prev, ...f} : null)} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.JOBS: return <Jobs jobs={jobs} user={user} navigate={navigate} onAddJob={async (j) => { await db.addJob(j); fetchContent(); }} onUpdateUser={f => setUser(prev => prev ? {...prev, ...f} : null)} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.RANKING: return <Ranking navigate={navigate} currentUser={user} />;
       case Screen.PROFILE: return <Profile user={user} navigate={navigate} onUpdate={f => setUser(prev => prev ? {...prev, ...f} : null)} dbConnected={dbConnected} isGuest={isGuest} />;
       case Screen.VAKHTA_JOURNAL: return <VakhtaJournal navigate={navigate} user={user} />;
       case Screen.FEED: return <Feed navigate={navigate} user={user!} />;
-      case Screen.MARKETPLACE: return <Marketplace items={marketItems} user={user!} navigate={navigate} onAddItem={async (item) => { await db.addMarketItem(item); setMarketItems(await db.getMarketItems()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.MARKETPLACE: return <Marketplace items={marketItems} user={user!} navigate={navigate} onAddItem={async (item) => { await db.addMarketItem(item); fetchContent(); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CHATS: return <ChatList user={user!} navigate={navigate} onSelectChat={(c) => { setActiveChat(c); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CHAT_DETAIL: return <ChatDetail chat={activeChat} user={user!} navigate={navigate} />;
       case Screen.BUGOR_CHAT: return <BugorChat user={user!} navigate={navigate} />;
       case Screen.MATERIALS_SEARCH: return <MaterialsSearch navigate={navigate} location={selectedLocation} />;
-      case Screen.HEAVY_MACHINERY: return <HeavyMachineryScreen machinery={machinery} navigate={navigate} onAddMachinery={async (m) => { await db.addMachinery(m); setMachinery(await db.getMachinery()); }} location={selectedLocation} />;
-      case Screen.AUTO_SERVICES: return <AutoServices autoServices={autoServices} navigate={navigate} onAddService={async (as) => { await db.addAutoService(as); setAutoServices(await db.getAutoServices()); }} location={selectedLocation} />;
-      case Screen.CARGO: return <HitchhikingCargoScreen cargo={cargo} navigate={navigate} onAddCargo={async (c) => { await db.addCargo(c); setCargo(await db.getCargo()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
-      case Screen.HITCHHIKERS: return <Hitchhikers hitchhikers={hitchhikers} navigate={navigate} onAddHitchhiker={async (h) => { await db.addHitchhiker(h); setHitchhikers(await db.getHitchhikers()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.HEAVY_MACHINERY: return <HeavyMachineryScreen machinery={machinery} navigate={navigate} onAddMachinery={async (m) => { await db.addMachinery(m); fetchContent(); }} location={selectedLocation} />;
+      case Screen.AUTO_SERVICES: return <AutoServices autoServices={autoServices} navigate={navigate} onAddService={async (as) => { await db.addAutoService(as); fetchContent(); }} location={selectedLocation} />;
+      case Screen.CARGO: return <HitchhikingCargoScreen cargo={cargo} navigate={navigate} onAddCargo={async (c) => { await db.addCargo(c); fetchContent(); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.HITCHHIKERS: return <Hitchhikers hitchhikers={hitchhikers} navigate={navigate} onAddHitchhiker={async (h) => { await db.addHitchhiker(h); fetchContent(); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CONTRACT_GEN: return <ContractGen navigate={navigate} user={user!} />;
       case Screen.CALCULATORS: return <Calculators navigate={navigate} />;
-      case Screen.TEAMS: return <Teams teams={teams} navigate={navigate} onAddTeam={async (t) => { await db.addTeam(t); setTeams(await db.getTeams()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
+      case Screen.TEAMS: return <Teams teams={teams} navigate={navigate} onAddTeam={async (t) => { await db.addTeam(t); fetchContent(); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.ADMIN_LOGIN: return <AdminLogin navigate={navigate} />;
       case Screen.ADMIN_VACANCIES: return <AdminVacancies navigate={navigate} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.DIAGNOSTIC: return <Diagnostic navigate={navigate} onRefresh={() => initData()} />;
