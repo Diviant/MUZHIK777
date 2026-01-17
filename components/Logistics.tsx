@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Screen, User } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -37,15 +36,8 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
     setRawResult(null);
     setSources([]);
 
-    const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
-    if (!apiKey) {
-      setRawResult('Ошибка: API ключ не обнаружен в системе.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `Найди актуальные билеты на ${transport === 'FLIGHT' ? 'самолет' : 'поезд'} из "${from}" в "${to}" на ${date}. 
       Укажи цены, время в пути и номера рейсов/поездов. Дай ссылки на покупку или сайты агрегаторов. 
       Напиши краткий совет от Бугра про дорогу.`;
@@ -62,7 +54,7 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
       }
     } catch (err) {
       console.error(err);
-      setRawResult('Сбой связи с авиакассой. Проверь API_KEY.');
+      setRawResult('Сбой связи с авиакассой. Проверь настройки API в кабинете.');
     } finally {
       setLoading(false);
     }

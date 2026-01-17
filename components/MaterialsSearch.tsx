@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Screen, Location } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -20,15 +19,8 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
     setResult(null);
     setSources([]);
 
-    const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
-    if (!apiKey) {
-      setResult('Ошибка: API ключ не обнаружен. Настрой окружение.');
-      setLoading(false);
-      return;
-    }
-
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Найди цены и поставщиков: ${query} в регионе ${location?.name || 'Россия'}. Укажи адреса и контакты складов. Дай краткий анализ цен.`,
@@ -43,7 +35,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
       }
     } catch (err) {
       console.error(err);
-      setResult('Ошибка парсера. Слишком много запросов или неверный ключ.');
+      setResult('Ошибка парсера. Проверь API ключ в настройках профиля.');
     } finally {
       setLoading(false);
     }

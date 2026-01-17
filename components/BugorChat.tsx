@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Screen, User, ChatMessage } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -34,12 +33,6 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
   const handleSend = async () => {
     if (!inputText.trim() || loading || !user.isPro) return;
 
-    const apiKey = process.env.API_KEY || (import.meta as any).env?.VITE_API_KEY;
-    if (!apiKey) {
-      setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: 'Ошибка: API ключ не настроен. Обратись к администратору.', timestamp: Date.now() }]);
-      return;
-    }
-
     const userMsg: ChatMessage = { 
       id: Date.now().toString(), 
       senderId: user.id, 
@@ -52,7 +45,7 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
     setLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: inputText,
@@ -75,7 +68,7 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
       setMessages(prev => [...prev, bugorMsg]);
     } catch (err) {
       console.error(err);
-      setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: 'Интернет на объекте лагает. Не могу достучаться до сервера.', timestamp: Date.now() }]);
+      setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: 'Интернет на объекте лагает. Не могу достучаться до Бугра.', timestamp: Date.now() }]);
     } finally {
       setLoading(false);
     }
