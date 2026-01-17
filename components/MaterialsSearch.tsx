@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Screen, Location } from '../types';
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiKey } from '../lib/supabase';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -21,7 +21,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
     setSources([]);
 
     try {
-      const apiKey = process.env.API_KEY;
+      const apiKey = getGeminiKey();
       if (!apiKey) throw new Error('API_KEY_MISSING');
 
       const ai = new GoogleGenAI({ apiKey });
@@ -40,7 +40,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
     } catch (err: any) {
       console.error("SUPPLY_API_ERROR:", err);
       const msg = err.message === 'API_KEY_MISSING' 
-        ? 'Ошибка: Ключ API не обнаружен в системе.' 
+        ? 'Ошибка: Ключ API не обнаружен. Настрой его в Инженерном пульте (ИИ_ПРОФИЛЬ).' 
         : `Ошибка: ${err.message || 'Сбой связи'}`;
       setResult(msg);
     } finally {

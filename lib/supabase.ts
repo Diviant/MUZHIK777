@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 const getEnvVar = (key: string): string => {
@@ -29,8 +28,12 @@ const getEnvVar = (key: string): string => {
   return '';
 };
 
-// Специальная функция для Gemini, возвращающая ключ исключительно из process.env.API_KEY
+// Функция для Gemini: проверяет локальный "ключ из профиля", затем системный process.env.API_KEY
 export const getGeminiKey = (): string => {
+  if (typeof window !== 'undefined') {
+    const profileKey = localStorage.getItem('MUZHIK_PROFILE_GEMINI_KEY');
+    if (profileKey && profileKey.length > 10) return profileKey.trim();
+  }
   return process.env.API_KEY || '';
 };
 
@@ -60,7 +63,6 @@ export const supabase = createClient(
   }
 );
 
-// Added missing getAdminClient export for bulk operations
 export const getAdminClient = () => {
   return createClient(
     config.url || PLACEHOLDER_URL,
@@ -74,7 +76,6 @@ export const getAdminClient = () => {
   );
 };
 
-// Added missing getTgCredentials export for Telegram auth synchronization
 export const getTgCredentials = (tgId: string | number) => {
   return {
     email: `tg_${tgId}@muzhik.internal`,
@@ -89,25 +90,27 @@ export const getDebugConfig = () => {
   return { 
     url: config.url || 'NOT_SET', 
     urlOk: isSupabaseConfigured(),
-    // Маскированные ключи для проверки наличия
     sources: {
       vite_url: !!metaEnv.VITE_SUPABASE_URL,
       vite_key: !!metaEnv.VITE_SUPABASE_ANON_KEY,
       proc_key: !!procEnv.API_KEY,
       local_override: typeof window !== 'undefined' && !!localStorage.getItem('OVERRIDE_SUPABASE_URL'),
+      profile_ai_key: typeof window !== 'undefined' && !!localStorage.getItem('MUZHIK_PROFILE_GEMINI_KEY')
     },
     geminiKeySet: !!getGeminiKey()
   };
 };
 
-export const saveManualConfig = (url: string, key: string) => {
+export const saveManualConfig = (url: string, key: string, gKey?: string) => {
   if (url) localStorage.setItem('OVERRIDE_SUPABASE_URL', url.trim());
   if (key) localStorage.setItem('OVERRIDE_SUPABASE_ANON_KEY', key.trim());
+  if (gKey) localStorage.setItem('MUZHIK_PROFILE_GEMINI_KEY', gKey.trim());
   window.location.reload();
 };
 
 export const clearManualConfig = () => {
   localStorage.removeItem('OVERRIDE_SUPABASE_URL');
   localStorage.removeItem('OVERRIDE_SUPABASE_ANON_KEY');
+  localStorage.removeItem('MUZHIK_PROFILE_GEMINI_KEY');
   window.location.reload();
 };

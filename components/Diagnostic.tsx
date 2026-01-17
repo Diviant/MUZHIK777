@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Screen } from '../types';
 import { db } from '../database';
-import { getDebugConfig, saveManualConfig, clearManualConfig } from '../lib/supabase';
+import { getDebugConfig, saveManualConfig, clearManualConfig, getGeminiKey } from '../lib/supabase';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -10,12 +9,13 @@ interface Props {
 }
 
 const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState<'SYSTEM' | 'ENV_LOG'>('SYSTEM');
+  const [activeTab, setActiveTab] = useState<'SYSTEM' | 'AI' | 'ENV_LOG'>('SYSTEM');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
   
   const [mUrl, setMUrl] = useState('');
   const [mKey, setMKey] = useState('');
+  const [mGKey, setMGKey] = useState(localStorage.getItem('MUZHIK_PROFILE_GEMINI_KEY') || '');
 
   const config = getDebugConfig();
 
@@ -27,7 +27,7 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
   };
 
   const handleSave = () => {
-    saveManualConfig(mUrl, mKey);
+    saveManualConfig(mUrl, mKey, mGKey);
   };
 
   return (
@@ -46,6 +46,7 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
 
       <div className="flex gap-2 p-1 bg-zinc-900/50 rounded-2xl mb-8 border border-white/5 overflow-x-auto no-scrollbar">
         <button onClick={() => setActiveTab('SYSTEM')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'SYSTEM' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>БАЗА_ДАННЫХ</button>
+        <button onClick={() => setActiveTab('AI')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'AI' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>ИИ_ПРОФИЛЬ</button>
         <button onClick={() => setActiveTab('ENV_LOG')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'ENV_LOG' ? 'bg-zinc-800 text-white' : 'text-zinc-600'}`}>ENV_LOG</button>
       </div>
 
@@ -79,6 +80,31 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
           </div>
         )}
 
+        {activeTab === 'AI' && (
+          <div className="space-y-4">
+            <section className="bg-zinc-900/40 p-6 rounded-[35px] border border-white/5">
+               <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-4">ЛИЧНЫЙ КЛЮЧ GEMINI:</h3>
+               <p className="text-[10px] text-zinc-500 italic mb-6 leading-relaxed">
+                 Если системный Бугор не отвечает (ошибка ключа на Vercel), вставь сюда свой личный ключ. Он сохранится только в твоем браузере.
+               </p>
+               <input 
+                 value={mGKey} 
+                 onChange={e => setMGKey(e.target.value)} 
+                 placeholder="AIza..." 
+                 className="w-full h-14 bg-black border border-white/10 rounded-xl px-4 text-white text-[10px] font-mono outline-none focus:border-[#D4AF37]/40 mb-6" 
+               />
+               <button onClick={handleSave} className="w-full bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic text-[11px]">АКТИВИРОВАТЬ_КЛЮЧ_ПРОФИЛЯ</button>
+               {config.geminiKeySet && (
+                 <div className="mt-4 flex items-center gap-2 justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                    <span className="text-[8px] text-green-500 font-black uppercase tracking-widest">КЛЮЧ_ПРОФИЛЯ_АКТИВЕН</span>
+                 </div>
+               )}
+            </section>
+            <button onClick={clearManualConfig} className="w-full py-4 text-zinc-700 font-black uppercase text-[9px] tracking-widest italic border border-white/5 rounded-xl">СБРОСИТЬ_ВСЕ_К_ЗАВОДСКИМ</button>
+          </div>
+        )}
+
         {activeTab === 'ENV_LOG' && (
           <section className="bg-black border border-white/5 p-6 rounded-[35px] text-left">
              <h3 className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-6 italic">ENV_DETECTION_MATRIX:</h3>
@@ -95,10 +121,14 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
                    <span className="text-zinc-700 uppercase">Source: LOCAL_OVERRIDE</span>
                    <span className={config.sources.local_override ? "text-[#D4AF37]" : "text-zinc-800"}>{config.sources.local_override ? "ACTIVE" : "NONE"}</span>
                 </div>
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                   <span className="text-zinc-700 uppercase">Source: PROFILE_AI_KEY</span>
+                   <span className={config.sources.profile_ai_key ? "text-[#D4AF37]" : "text-zinc-800"}>{config.sources.profile_ai_key ? "ACTIVE" : "NONE"}</span>
+                </div>
              </div>
              <div className="mt-8 p-4 bg-zinc-900/50 rounded-xl">
                 <p className="text-[8px] text-zinc-600 leading-relaxed uppercase">
-                  * На Vercel ключи без префикса VITE_ часто недоступны в браузере. Используй ручной ввод, если ENV_LOG показывает NULL.
+                  * На Vercel ключи без префикса VITE_ часто недоступны. Используй ручной ввод в ИИ_ПРОФИЛЬ, если Source: PROCESS_ENV показывает NULL.
                 </p>
              </div>
           </section>

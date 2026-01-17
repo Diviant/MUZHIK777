@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Screen, Location } from '../types';
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiKey } from '../lib/supabase';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -87,7 +88,7 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
     }
 
     try {
-      const apiKey = process.env.API_KEY;
+      const apiKey = getGeminiKey();
       if (!apiKey) throw new Error('API_KEY_MISSING');
 
       const ai = new GoogleGenAI({ apiKey });
@@ -103,9 +104,10 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
       }
     } catch (err: any) {
       console.error("REST_API_ERROR:", err);
-      setResult(err.message === 'API_KEY_MISSING' 
-        ? 'Ошибка: Ключ API не обнаружен. Настрой Environment Variables на Vercel.' 
-        : 'Бугор на совещании, зайти позже. (Ошибка поиска)');
+      const msg = err.message === 'API_KEY_MISSING' 
+        ? 'Ошибка: Ключ API не обнаружен. Проверь "Инженерный пульт" (ИИ_ПРОФИЛЬ).' 
+        : 'Бугор на совещании, зайди позже. (Ошибка поиска)';
+      setResult(msg);
     } finally {
       setLoading(false);
     }
