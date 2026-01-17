@@ -87,13 +87,18 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
       query = queries[activeTab];
     }
 
-    try {
-      const apiKey = getGeminiKey();
-      if (!apiKey) throw new Error('API_KEY_MISSING');
+    const apiKey = getGeminiKey();
+    if (!apiKey) {
+      setResult('Ошибка: Ключ API не обнаружен. Настрой его в "ИИ_ПРОФИЛЬ".');
+      setLoading(false);
+      return;
+    }
 
+    try {
       const ai = new GoogleGenAI({ apiKey });
+      // Используем gemini-3-pro-image-preview так как она лучше работает с поиском
       const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3-pro-image-preview',
         contents: query,
         config: { tools: [{ googleSearch: {} }] }
       });
@@ -103,18 +108,19 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
         setSources(response.candidates[0].groundingMetadata.groundingChunks);
       }
     } catch (err: any) {
-      console.error("REST_API_ERROR:", err);
-      let errorMsg = 'Сбой связи с Бугром.';
+      console.warn("PRIMARY_API_FAILED, TRYING_FALLBACK:", err);
       
-      if (err.message === 'API_KEY_MISSING') {
-        errorMsg = 'Ошибка: Ключ API не обнаружен. Проверь "Инженерный пульт" (ИИ_ПРОФИЛЬ).';
-      } else {
-        // Выводим более подробную информацию для пользователя, если это не секретные данные
-        errorMsg = `Ошибка: ${err.message?.includes('403') ? 'Доступ запрещен (проверь лимиты/ключ)' : 
-                   err.message?.includes('404') ? 'Модель не найдена (попробуй позже)' : 
-                   err.message || 'Ошибка поиска'}`;
+      // FALLBACK: Пробуем без инструментов поиска на более легкой модели
+      try {
+        const ai = new GoogleGenAI({ apiKey });
+        const response = await ai.models.generateContent({
+          model: 'gemini-3-flash-preview',
+          contents: `${query} (Ответь на основе своих знаний, поиск недоступен)`,
+        });
+        setResult((response.text || '') + "\n\n(Примечание: Ответ без живого поиска)");
+      } catch (fallbackErr: any) {
+        setResult(`Сбой связи: ${fallbackErr.message || 'Ошибка доступа'}`);
       }
-      setResult(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -153,7 +159,7 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
             <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ОТДЫХ В ЦЕХЕ</h2>
             <div className="flex items-center gap-1.5 mt-1.5">
                <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse"></div>
-               <span className="text-[7px] text-zinc-500 font-black uppercase tracking-widest italic mono">REST_AND_RECOVER_v1.8</span>
+               <span className="text-[7px] text-zinc-500 font-black uppercase tracking-widest italic mono">REST_AND_RECOVER_v1.9</span>
             </div>
           </div>
         </div>

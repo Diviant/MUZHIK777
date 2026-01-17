@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Screen } from '../types';
 import { db } from '../database';
 import { getDebugConfig, saveManualConfig, clearManualConfig, getGeminiKey } from '../lib/supabase';
+import { GoogleGenAI } from '@google/genai';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -11,7 +12,9 @@ interface Props {
 const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
   const [activeTab, setActiveTab] = useState<'SYSTEM' | 'AI' | 'ENV_LOG'>('SYSTEM');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [aiTestResult, setAiTestResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   
   const [mUrl, setMUrl] = useState('');
   const [mKey, setMKey] = useState('');
@@ -24,6 +27,27 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
     const result = await db.testConnection();
     setTestResult(result);
     setLoading(false);
+  };
+
+  const testAi = async () => {
+    const key = getGeminiKey();
+    if (!key) {
+      setAiTestResult("ОШИБКА: КЛЮЧ НЕ НАЙДЕН");
+      return;
+    }
+    setAiLoading(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: key });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: 'Say "OK" if you hear me',
+      });
+      setAiTestResult(`СВЯЗЬ: ${response.text || 'ОТВЕТ ПУСТОЙ'}`);
+    } catch (e: any) {
+      setAiTestResult(`СБОЙ: ${e.message || 'НЕИЗВЕСТНАЯ ОШИБКА'}`);
+    } finally {
+      setAiLoading(false);
+    }
   };
 
   const handleSave = () => {
@@ -87,17 +111,29 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
             <section className="bg-zinc-900/40 p-5 rounded-[30px] border border-white/5 shadow-2xl">
                <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-4 ml-1">ЛИЧНЫЙ КЛЮЧ GEMINI:</h3>
                <p className="text-[11px] text-zinc-500 italic mb-6 leading-relaxed px-1">
-                 Если системный Бугор не отвечает (ошибка ключа на Vercel), вставь сюда свой личный ключ. Он сохранится только в твоем браузере.
+                 Вставь свой ключ AIza... Проверь, что в Google Cloud Console включен "Generative Language API".
                </p>
                <input 
                  value={mGKey} 
                  onChange={e => setMGKey(e.target.value)} 
                  placeholder="AIza..." 
-                 className="w-full h-16 bg-black border border-white/10 rounded-2xl px-5 text-white text-[12px] font-mono outline-none focus:border-[#D4AF37]/40 mb-6" 
+                 className="w-full h-16 bg-black border border-white/10 rounded-2xl px-5 text-white text-[12px] font-mono outline-none focus:border-[#D4AF37]/40 mb-4" 
                />
-               <button onClick={handleSave} className="w-full bg-[#D4AF37] text-black font-black py-5 rounded-2xl uppercase italic text-[12px] shadow-xl shadow-[#D4AF37]/10 active-press">
-                 АКТИВИРОВАТЬ_КЛЮЧ_ПРОФИЛЯ
-               </button>
+               <div className="grid grid-cols-2 gap-2">
+                 <button onClick={handleSave} className="bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic text-[10px] active-press">
+                   СОХРАНИТЬ
+                 </button>
+                 <button onClick={testAi} disabled={aiLoading} className="bg-zinc-800 text-white font-black py-4 rounded-xl uppercase italic text-[10px] active-press">
+                   {aiLoading ? '...' : 'ТЕСТ_КЛЮЧА'}
+                 </button>
+               </div>
+               
+               {aiTestResult && (
+                 <div className="mt-4 p-4 bg-black rounded-xl border border-white/10">
+                   <p className="text-[9px] font-mono text-zinc-400 break-all">{aiTestResult}</p>
+                 </div>
+               )}
+
                {config.geminiKeySet && (
                  <div className="mt-5 flex items-center gap-3 justify-center bg-green-500/5 py-3 rounded-xl border border-green-500/10">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]"></div>
@@ -131,11 +167,6 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
                    <span className="text-zinc-700 uppercase">Source: PROFILE_AI</span>
                    <span className={config.sources.profile_ai_key ? "text-[#D4AF37] font-black" : "text-zinc-800"}>{config.sources.profile_ai_key ? "ACTIVE" : "NONE"}</span>
                 </div>
-             </div>
-             <div className="mt-8 p-5 bg-zinc-900/50 rounded-2xl border border-white/5">
-                <p className="text-[9px] text-zinc-600 leading-relaxed uppercase italic">
-                  * На некоторых хостингах ключи без префикса VITE_ не видны браузеру. Если всё в NULL — используй ручной ввод во вкладке AI_КЛЮЧ.
-                </p>
              </div>
           </section>
         )}
