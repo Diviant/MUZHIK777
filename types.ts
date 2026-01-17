@@ -21,7 +21,25 @@ export enum Screen {
   DIAGNOSTIC = 'DIAGNOSTIC',
   BUGOR_CHAT = 'BUGOR_CHAT',
   ADMIN_LOGIN = 'ADMIN_LOGIN',
-  ADMIN_VACANCIES = 'ADMIN_VACANCIES'
+  ADMIN_VACANCIES = 'ADMIN_VACANCIES',
+  VAKHTA_JOURNAL = 'VAKHTA_JOURNAL',
+  MATERIALS_SEARCH = 'MATERIALS_SEARCH',
+  NOTES = 'NOTES'
+}
+
+export interface VakhtaEntry {
+  startDate: string;
+  expectedSalary: number;
+  advances: number;
+  travelExpenses: number;
+  foodExpenses: number;
+  sentHome: number;
+}
+
+export interface Note {
+  id: string;
+  text: string;
+  timestamp: number;
 }
 
 export interface User {
