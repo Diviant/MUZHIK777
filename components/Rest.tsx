@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Screen, Location } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -46,8 +45,6 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
     const updated = [newItem, ...savedHistory.slice(0, 9)];
     setSavedHistory(updated);
     localStorage.setItem('muzhik_rest_history', JSON.stringify(updated));
-    
-    // Haptic feedback simulation
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
@@ -72,47 +69,43 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
     setSources([]);
 
     let query = '';
-    
     if (specificDish) {
-      query = `Напиши детальный "мужицкий" рецепт из категории "${specificDish}". 
-      ОБЯЗАТЕЛЬНО укажи:
-      1. ГРАММОВКИ всех ингредиентов.
-      2. ВРЕМЯ ГОТОВКИ в минутах.
-      3. ПРИМЕРНЫЙ БЮДЖЕТ в рублях на одну порцию.
-      4. ПОШАГОВУЮ ИНСТРУКЦИЮ (чтобы даже на плитке в бытовке получилось).
-      Стиль: суровый совет от Бугра.`;
+      query = `Напиши детальный "мужицкий" рецепт из категории "${specificDish}". Укажи граммовки, время, бюджет. Инструкция для плитки в бытовке. Стиль: совет от Бугра.`;
     } else if (specificGear) {
-      query = `Где в городе ${city} купить категорию шмота: "${specificGear}"? 
-      Ищи магазины спецодежды (Восток-Сервис, Техноавиа), рынки и инструментальные базы. 
-      Укажи точные адреса и телефоны. 
-      Дай батин совет от Бугра: как выбрать качество и не купить картон вместо кожи.`;
+      query = `Где в городе ${city} купить шмот: "${specificGear}"? Магазины спецодежды и рынки. Дай батин совет от Бугра про качество.`;
     } else {
       const queries = {
-        SAUNA: `Найди лучшие бани и сауны в городе ${city}. Точные адреса и телефоны. Совет от Бугра про веник.`,
-        CAMPING: `Места для отдыха на природе рядом с городом ${city}. Как доехать, что брать.`,
-        BEER: `Где купить нормальное пиво в городе ${city}? Разливайки и крафт. Адреса и закуски.`,
-        SLEEP: `Где переночевать в городе ${city}? Хостелы, общаги, отели. Цены и чистота.`,
-        KITCHEN: `Где поесть в городе ${city}? Столовые, пельменные. Адреса и телефоны.`,
-        GEAR: `Магазины спецодежды и инструмента в городе ${city}. Адреса и телефоны.`,
-        DATE: `Куда сводить девушку в городе ${city}, чтоб прилично и не пафосно? Парки, кафе, кино. Адреса.`
+        SAUNA: `Лучшие бани и сауны в городе ${city}. Точные адреса и телефоны. Совет от Бугра про веник.`,
+        CAMPING: `Места для отдыха на природе рядом с городом ${city}. Как доехать.`,
+        BEER: `Где купить нормальное пиво в городе ${city}? Адреса и закуски.`,
+        SLEEP: `Где переночевать в городе ${city}? Хостелы, общаги. Цены.`,
+        KITCHEN: `Где поесть в городе ${city}? Столовые, пельменные.`,
+        GEAR: `Спецодежда и инструмент в городе ${city}. Адреса.`,
+        DATE: `Куда сводить девушку в городе ${city}, чтоб прилично и не пафосно?`
       };
       query = queries[activeTab];
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) throw new Error('API_KEY_MISSING');
+
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: query,
         config: { tools: [{ googleSearch: {} }] }
       });
 
-      setResult(response.text || 'Данные не найдены.');
+      setResult(response.text || 'Ничего не нашел, мужик.');
       if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
         setSources(response.candidates[0].groundingMetadata.groundingChunks);
       }
-    } catch (err) {
-      setResult('Связь с базой пропала. Попробуй позже.');
+    } catch (err: any) {
+      console.error("REST_API_ERROR:", err);
+      setResult(err.message === 'API_KEY_MISSING' 
+        ? 'Ошибка: Ключ API не обнаружен. Настрой Environment Variables на Vercel.' 
+        : 'Бугор на совещании, зайти позже. (Ошибка поиска)');
     } finally {
       setLoading(false);
     }
@@ -157,7 +150,6 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
         </div>
       </header>
 
-      {/* SEARCH CONSOLE */}
       <div className="bg-[#121212] p-6 rounded-[35px] border border-white/5 mb-6 shadow-2xl relative">
          <div className="flex gap-2 p-1 bg-black rounded-2xl mb-6 border border-white/5 overflow-x-auto no-scrollbar">
             {tabs.map(t => (
@@ -192,7 +184,6 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
             </button>
          </div>
 
-         {/* SUB-MENUS */}
          {activeTab === 'KITCHEN' && (
            <div className="mt-8 pt-6 border-t border-white/5">
               <h3 className="text-[8px] text-zinc-600 font-black uppercase tracking-widest mb-4 italic text-left">ЧЕГО ИЗВОЛИМ? (РЕЦЕПТ ОТ БУГРА)</h3>
@@ -222,7 +213,6 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
          )}
       </div>
 
-      {/* RESULTS */}
       <div className="space-y-6">
         {result && (
           <div className="flex flex-col gap-4 animate-slide-up">
@@ -234,7 +224,6 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
                     {result}
                   </div>
 
-                  {/* ACTION BAR */}
                   <div className="flex gap-2 pt-4 border-t border-white/5">
                      <button onClick={handleCopy} className={`flex-1 py-3 rounded-xl text-[8px] font-black uppercase transition-all ${copyStatus ? 'bg-green-600 text-white' : 'bg-zinc-800 text-zinc-400'}`}>
                        {copyStatus ? 'ГОТОВО ✓' : '📋 КОПИРОВАТЬ'}
@@ -258,32 +247,6 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
                  ))}
               </div>
             )}
-          </div>
-        )}
-
-        {/* HISTORY SECTION */}
-        {savedHistory.length > 0 && !result && !loading && (
-           <div className="mt-10 animate-slide-up">
-              <h4 className="text-[10px] text-zinc-700 font-black uppercase tracking-widest ml-4 mb-4 italic">СОХРАНЕННАЯ РАЗВЕДКА:</h4>
-              <div className="space-y-3">
-                 {savedHistory.map((item) => (
-                   <button key={item.id} onClick={() => { setResult(item.content); setCity(item.city); }} className="w-full bg-[#121212] p-5 rounded-[25px] border border-white/5 text-left active-press">
-                      <div className="flex justify-between items-center mb-2">
-                         <span className="text-[#D4AF37] text-[9px] font-black uppercase italic">{item.type} — {item.city}</span>
-                         <span className="text-zinc-800 text-[8px] mono uppercase">{new Date(item.timestamp).toLocaleDateString()}</span>
-                      </div>
-                      <p className="text-zinc-500 text-[10px] italic truncate">{item.content.substring(0, 100)}...</p>
-                   </button>
-                 ))}
-                 <button onClick={() => { localStorage.removeItem('muzhik_rest_history'); setSavedHistory([]); }} className="w-full py-4 text-zinc-800 text-[8px] font-black uppercase italic">ОЧИСТИТЬ АРХИВ</button>
-              </div>
-           </div>
-        )}
-
-        {loading && (
-          <div className="py-20 text-center flex flex-col items-center">
-             <div className="w-10 h-10 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-6"></div>
-             <p className="text-[8px] text-zinc-700 font-black uppercase tracking-[0.4em] animate-pulse mono">LINKING_LOCAL_SENSORS...</p>
           </div>
         )}
       </div>

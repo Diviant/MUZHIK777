@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Screen, Location } from '../types';
 import { GoogleGenAI } from '@google/genai';
@@ -20,7 +21,10 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
     setSources([]);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = process.env.API_KEY;
+      if (!apiKey) throw new Error('API_KEY_MISSING');
+
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Найди цены и поставщиков: ${query} в регионе ${location?.name || 'Россия'}. Укажи адреса и контакты складов. Дай краткий анализ цен.`,
@@ -29,13 +33,16 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
         }
       });
 
-      setResult(response.text);
+      setResult(response.text || 'Ничего не найдено.');
       if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
         setSources(response.candidates[0].groundingMetadata.groundingChunks);
       }
-    } catch (err) {
-      console.error(err);
-      setResult('Ошибка парсера. Проверь API ключ в настройках профиля.');
+    } catch (err: any) {
+      console.error("SUPPLY_API_ERROR:", err);
+      const msg = err.message === 'API_KEY_MISSING' 
+        ? 'Ошибка: Ключ API не обнаружен в системе.' 
+        : `Ошибка: ${err.message || 'Сбой связи'}`;
+      setResult(msg);
     } finally {
       setLoading(false);
     }
@@ -83,7 +90,7 @@ const MaterialsSearch: React.FC<Props> = ({ navigate, location }) => {
                 <h4 className="text-[10px] text-zinc-700 font-black uppercase tracking-widest ml-4">ИСТОЧНИКИ:</h4>
                 {sources.map((s, i) => (
                   s.web && (
-                    <a key={i} href={s.web.uri} target="_blank" className="block bg-[#121212] p-6 rounded-[30px] border border-white/5 text-left active-press">
+                    <a key={i} href={s.web.uri} target="_blank" rel="noopener noreferrer" className="block bg-[#121212] p-6 rounded-[30px] border border-white/5 text-left active-press">
                        <span className="text-white text-[12px] font-black uppercase italic block truncate mb-1">{s.web.title}</span>
                        <span className="text-[#D4AF37] text-[8px] truncate block mono uppercase">{s.web.uri}</span>
                     </a>

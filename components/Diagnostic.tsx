@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Screen } from '../types';
 import { db } from '../database';
 import { getDebugConfig, saveManualConfig, clearManualConfig } from '../lib/supabase';
@@ -10,12 +10,13 @@ interface Props {
 }
 
 const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState<'SYSTEM' | 'GIT'>('SYSTEM');
+  const [activeTab, setActiveTab] = useState<'SYSTEM' | 'ENV_LOG'>('SYSTEM');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
-  const [manualUrl, setManualUrl] = useState('');
-  const [manualKey, setManualKey] = useState('');
   
+  const [mUrl, setMUrl] = useState('');
+  const [mKey, setMKey] = useState('');
+
   const config = getDebugConfig();
 
   const runTest = async () => {
@@ -25,127 +26,89 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (activeTab === 'SYSTEM') runTest();
-  }, [activeTab]);
-
-  const handleHardReset = () => {
-    if (confirm('☢️ ВНИМАНИЕ: Это удалит все ключи из памяти браузера, вылогинит тебя и очистит кэш. Помогает, если зависли старые данные. Продолжаем?')) {
-      clearManualConfig();
-    }
+  const handleSave = () => {
+    saveManualConfig(mUrl, mKey);
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 screen-fade overflow-y-auto no-scrollbar bg-[#080808]">
+    <div className="flex-1 flex flex-col p-6 screen-fade overflow-y-auto no-scrollbar bg-[#050505] pt-safe">
       <header className="flex items-center gap-4 py-4 mb-6">
-        <button onClick={() => navigate(Screen.PROFILE)} className="w-10 h-10 bg-[#121212] card-border rounded-xl flex items-center justify-center text-[#F5C518]">
+        <button onClick={() => navigate(Screen.HOME)} className="w-11 h-11 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center text-[#D4AF37] active-press shadow-xl">
           ←
         </button>
-        <div className="flex flex-col">
+        <div className="flex flex-col text-left">
           <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ИНЖЕНЕРНЫЙ ПУЛЬТ</h2>
-          <span className="text-[10px] text-zinc-600 font-black uppercase tracking-widest mt-1">
-            STATUS: {config.urlOk && config.keyOk ? 'CONFIGURED' : 'BROKEN'}
+          <span className={`text-[8px] font-black uppercase tracking-widest mt-1 mono ${config.urlOk ? 'text-green-500' : 'text-red-500'}`}>
+            DB_STATUS: {config.urlOk ? 'STABLE' : 'DISCONNECTED'}
           </span>
         </div>
       </header>
 
-      <div className="flex gap-2 p-1 bg-[#121212] rounded-2xl mb-6 border border-white/5">
-        <button 
-          onClick={() => setActiveTab('SYSTEM')}
-          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase italic transition-all ${activeTab === 'SYSTEM' ? 'bg-[#F5C518] text-black shadow-lg shadow-[#F5C518]/20' : 'text-zinc-600'}`}
-        >
-          Диагностика БД
-        </button>
-        <button 
-          onClick={() => setActiveTab('GIT')}
-          className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase italic transition-all ${activeTab === 'GIT' ? 'bg-[#F5C518] text-black shadow-lg shadow-[#F5C518]/20' : 'text-zinc-600'}`}
-        >
-          Справка Git
-        </button>
+      <div className="flex gap-2 p-1 bg-zinc-900/50 rounded-2xl mb-8 border border-white/5 overflow-x-auto no-scrollbar">
+        <button onClick={() => setActiveTab('SYSTEM')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'SYSTEM' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>БАЗА_ДАННЫХ</button>
+        <button onClick={() => setActiveTab('ENV_LOG')} className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'ENV_LOG' ? 'bg-zinc-800 text-white' : 'text-zinc-600'}`}>ENV_LOG</button>
       </div>
 
-      <div className="space-y-6 pb-24">
-        {activeTab === 'SYSTEM' ? (
-          <>
-            <section className="bg-[#121212] p-5 rounded-3xl border border-white/5 shadow-2xl">
-              <h3 className="text-[10px] text-[#F5C518] font-black uppercase tracking-widest italic mb-4">Авто-детект ключей:</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl">
-                  <span className="text-[9px] text-zinc-500 font-black uppercase">URL</span>
-                  <span className={`text-[10px] font-mono ${config.urlOk ? 'text-green-500' : 'text-red-500'}`}>
-                    {config.urlOk ? 'OK (SUPABASE.CO)' : 'НЕ НАЙДЕН'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between bg-black/40 p-3 rounded-xl">
-                  <span className="text-[9px] text-zinc-500 font-black uppercase">ANON_KEY</span>
-                  <span className={`text-[10px] font-mono ${config.keyOk ? 'text-green-500' : 'text-red-500'}`}>
-                    {config.keyOk ? 'OK (VALID LENGTH)' : 'ОШИБКА ДЛИНЫ'}
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            <section className={`p-5 rounded-3xl border ${testResult?.success ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'} shadow-2xl relative`}>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Тест соединения:</h3>
-                {loading && <div className="w-4 h-4 border-2 border-[#F5C518] border-t-transparent rounded-full animate-spin"></div>}
-              </div>
-              <p className={`text-xs font-black italic uppercase ${testResult?.success ? 'text-green-500' : 'text-red-500'}`}>
-                {testResult?.success ? 'СОЕДИНЕНИЕ УСТАНОВЛЕНО' : 'ОШИБКА СЕТИ / Failed to fetch'}
-              </p>
-              {!testResult?.success && (
-                <p className="text-[9px] text-zinc-600 mt-2 leading-relaxed bg-black/40 p-2 rounded-lg">
-                  {testResult?.message || 'База не отвечает. Проверь URL в настройках Vercel.'}
-                </p>
-              )}
-            </section>
-
-            <section className="bg-[#121212] p-6 rounded-3xl border border-white/5">
-              <h3 className="text-[10px] text-[#F5C518] font-black uppercase tracking-widest mb-4 italic">Ручная настройка (Override):</h3>
+      <div className="space-y-6 pb-32">
+        {activeTab === 'SYSTEM' && (
+          <div className="space-y-4">
+            <section className="bg-zinc-900/40 p-6 rounded-[35px] border border-white/5 shadow-2xl">
+              <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-6">ПАРАМЕТРЫ СОЕДИНЕНИЯ:</h3>
               <div className="space-y-4">
-                <input 
-                  value={manualUrl} 
-                  onChange={e => setManualUrl(e.target.value)}
-                  placeholder="https://xxx.supabase.co" 
-                  className="w-full bg-black border border-white/10 rounded-xl p-4 text-[11px] text-white font-mono outline-none"
-                />
-                <input 
-                  value={manualKey} 
-                  onChange={e => setManualKey(e.target.value)}
-                  placeholder="ANON_KEY (длинная строка)" 
-                  className="w-full bg-black border border-white/10 rounded-xl p-4 text-[11px] text-white font-mono outline-none"
-                />
-                <button 
-                  onClick={() => saveManualConfig(manualUrl, manualKey)}
-                  className="w-full bg-[#F5C518] text-black font-black py-4 rounded-xl uppercase italic shadow-lg active:scale-95"
-                >
-                  ПРИМЕНИТЬ И ПЕРЕЗАГРУЗИТЬ
-                </button>
+                 <div className="space-y-1 text-left">
+                    <label className="text-[7px] text-zinc-700 font-black uppercase tracking-widest ml-1">SUPABASE_URL</label>
+                    <input value={mUrl} onChange={e => setMUrl(e.target.value)} placeholder={config.url} className="w-full h-12 bg-black border border-white/10 rounded-xl px-4 text-white text-[10px] font-mono outline-none" />
+                 </div>
+                 <div className="space-y-1 text-left">
+                    <label className="text-[7px] text-zinc-700 font-black uppercase tracking-widest ml-1">ANON_KEY (S-ID)</label>
+                    <input value={mKey} onChange={e => setMKey(e.target.value)} placeholder="Вставьте новый ключ для смены базы..." className="w-full h-12 bg-black border border-white/10 rounded-xl px-4 text-white text-[10px] font-mono outline-none" />
+                 </div>
               </div>
+              <button onClick={handleSave} className="w-full mt-6 bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic text-[11px]">СОХРАНИТЬ_И_ПЕРЕЗАГРУЗИТЬ</button>
             </section>
 
-            <button 
-              onClick={handleHardReset}
-              className="w-full bg-red-900/10 border border-red-500/20 text-red-500 font-black py-4 rounded-xl uppercase italic text-[10px] tracking-widest"
-            >
-              СБРОСИТЬ КЭШ И СЕССИИ
+            <button onClick={runTest} disabled={loading} className="w-full h-16 bg-zinc-900 border border-white/10 rounded-2xl flex items-center justify-center gap-4 active-press">
+              {loading ? <div className="w-5 h-5 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div> : <span className="text-xs font-black text-white uppercase italic">ПРОВЕРИТЬ_КОННЕКТ</span>}
             </button>
-          </>
-        ) : (
-          <div className="bg-[#121212] p-6 rounded-3xl border border-white/5 space-y-4">
-             <h3 className="text-[10px] text-[#F5C518] font-black uppercase tracking-widest italic">Полезные команды:</h3>
-             <div className="p-4 bg-black rounded-xl border border-white/5">
-                <p className="text-[8px] text-zinc-600 uppercase font-black mb-2">Переключить Remote (если Git видит старый проект):</p>
-                <code className="text-[10px] text-blue-400 font-mono break-all">git remote set-url origin https://github.com/Diviant/MUZHIK777.git</code>
-             </div>
+
+            {testResult && (
+              <div className={`p-6 rounded-[30px] border ${testResult.success ? 'bg-green-950/20 border-green-500/30 text-green-400' : 'bg-red-950/20 border-red-500/30 text-red-400'}`}>
+                 <p className="text-[11px] font-medium italic">{testResult.message}</p>
+              </div>
+            )}
           </div>
         )}
 
+        {activeTab === 'ENV_LOG' && (
+          <section className="bg-black border border-white/5 p-6 rounded-[35px] text-left">
+             <h3 className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-6 italic">ENV_DETECTION_MATRIX:</h3>
+             <div className="space-y-3 font-mono text-[9px]">
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                   <span className="text-zinc-700 uppercase">Source: VITE_META</span>
+                   <span className={config.sources.vite_url ? "text-green-500" : "text-red-900"}>{config.sources.vite_url ? "DETECTED" : "NULL"}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                   <span className="text-zinc-700 uppercase">Source: PROCESS_ENV</span>
+                   <span className={config.sources.proc_key ? "text-green-500" : "text-red-900"}>{config.sources.proc_key ? "DETECTED" : "NULL"}</span>
+                </div>
+                <div className="flex justify-between border-b border-white/5 pb-2">
+                   <span className="text-zinc-700 uppercase">Source: LOCAL_OVERRIDE</span>
+                   <span className={config.sources.local_override ? "text-[#D4AF37]" : "text-zinc-800"}>{config.sources.local_override ? "ACTIVE" : "NONE"}</span>
+                </div>
+             </div>
+             <div className="mt-8 p-4 bg-zinc-900/50 rounded-xl">
+                <p className="text-[8px] text-zinc-600 leading-relaxed uppercase">
+                  * На Vercel ключи без префикса VITE_ часто недоступны в браузере. Используй ручной ввод, если ENV_LOG показывает NULL.
+                </p>
+             </div>
+          </section>
+        )}
+
         <button 
-          onClick={() => navigate(Screen.HOME)}
-          className="w-full bg-white/5 text-zinc-500 font-black py-4 rounded-xl uppercase italic text-[10px]"
+          onClick={() => navigate(Screen.HOME)} 
+          className="w-full py-5 text-zinc-800 font-black rounded-2xl uppercase italic text-[10px] tracking-[0.4em] active-press border border-white/5"
         >
-          ВЕРНУТЬСЯ В ЦЕХ
+          ЗАКРЫТЬ_КРАН
         </button>
       </div>
     </div>

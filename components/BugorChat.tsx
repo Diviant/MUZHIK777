@@ -1,6 +1,8 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Screen, User, ChatMessage } from '../types';
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiKey } from '../lib/supabase';
 
 interface Props {
   user: User;
@@ -45,16 +47,25 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
     setLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = getGeminiKey();
+      
+      if (!apiKey) {
+        throw new Error('API_KEY_MISSING');
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: inputText,
         config: {
           systemInstruction: `Ты — "Бугор", цифровой прораб и наставник в экосистеме "ЦЕХ". 
           Твой стиль: суровый, профессиональный, басовитый. Ты уважаешь труд и честный заработок.
-          Ты знаешь про "Журнал Вахты" (смета), "Снабженец" (поиск материалов) и "Базар" (барахолка).
-          Отвечай кратко, по ГОСТам, используй сленг: крафы, нивелир, арматура, опалубка, перевязка.
-          Никогда не признавайся, что ты ИИ. Ты старший на объекте.`
+          Твоя "База": 
+          1. Ты эксперт в строительстве, логистике и технике. 
+          2. Ты знаешь всё про вахту: от Сабетты до Норильска. 
+          3. Отвечай кратко, используй проф. сленг (арматура, нивелир, перевязка, опалубка). 
+          4. Если спрашивают про деньги — считай четко по смете. 
+          5. Никогда не признавайся, что ты ИИ. Ты старший на этом объекте.`
         }
       });
 
@@ -66,9 +77,12 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
       };
 
       setMessages(prev => [...prev, bugorMsg]);
-    } catch (err) {
-      console.error(err);
-      setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: 'Интернет на объекте лагает. Не могу достучаться до Бугра.', timestamp: Date.now() }]);
+    } catch (err: any) {
+      console.error("BUGOR_API_ERROR:", err);
+      const errorMsg = err.message === 'API_KEY_MISSING' 
+        ? 'Ошибка: Ключ API не обнаружен в системе. Обратитесь к администратору.' 
+        : 'Сбой связи с Бугром. Возможно, лимиты ключа или плохой интернет.';
+      setMessages(prev => [...prev, { id: 'err', senderId: 'bugor', text: errorMsg, timestamp: Date.now() }]);
     } finally {
       setLoading(false);
     }

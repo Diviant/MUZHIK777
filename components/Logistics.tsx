@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Screen, User } from '../types';
 import { GoogleGenAI } from '@google/genai';
+import { getGeminiKey } from '../lib/supabase';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -23,12 +24,6 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
   const [rawResult, setRawResult] = useState<string | null>(null);
   const [sources, setSources] = useState<any[]>([]);
   const [copyStatus, setCopyStatus] = useState(false);
-  const [history, setHistory] = useState<SavedLogistic[]>([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('muzhik_logistics_history');
-    if (saved) setHistory(JSON.parse(saved));
-  }, []);
 
   const handleSearch = async () => {
     if (!from || !to || loading) return;
@@ -37,7 +32,10 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
     setSources([]);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = getGeminiKey();
+      if (!apiKey) throw new Error('API_KEY_MISSING');
+
+      const ai = new GoogleGenAI({ apiKey });
       const prompt = `Найди актуальные билеты на ${transport === 'FLIGHT' ? 'самолет' : 'поезд'} из "${from}" в "${to}" на ${date}. 
       Укажи цены, время в пути и номера рейсов/поездов. Дай ссылки на покупку или сайты агрегаторов. 
       Напиши краткий совет от Бугра про дорогу.`;
@@ -52,9 +50,12 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
       if (response.candidates?.[0]?.groundingMetadata?.groundingChunks) {
         setSources(response.candidates[0].groundingMetadata.groundingChunks);
       }
-    } catch (err) {
-      console.error(err);
-      setRawResult('Сбой связи с авиакассой. Проверь настройки API в кабинете.');
+    } catch (err: any) {
+      console.error("LOGISTICS_API_ERROR:", err);
+      const msg = err.message === 'API_KEY_MISSING' 
+        ? 'Ошибка: Ключ API не обнаружен. Настрой его в Инженерном пульте.'
+        : `Сбой связи. Ошибка: ${err.message}`;
+      setRawResult(msg);
     } finally {
       setLoading(false);
     }
@@ -97,7 +98,7 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
           <div className="flex flex-col gap-4 animate-slide-up">
             <div className="bg-[#1a1a1a] p-6 rounded-[35px] border-l-4 border-[#D4AF37] shadow-2xl relative overflow-hidden group">
                <div className="absolute top-0 right-0 p-4 opacity-10 text-4xl">🎫</div>
-               <span className="bg-[#D4AF37] text-black text-[9px] font-black px-4 py-1 rounded-full uppercase italic mb-4 inline-block">ОТЧЕТ</span>
+               <span className="bg-[#D4AF37] text-black text-[8px] font-black px-4 py-1 rounded-full uppercase italic mb-4 inline-block">ОТЧЕТ</span>
                <div className="text-white text-[13px] leading-relaxed italic whitespace-pre-wrap mb-6">{rawResult}</div>
                
                <div className="flex gap-2 pt-4 border-t border-white/5">

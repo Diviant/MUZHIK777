@@ -12,8 +12,7 @@ const getEnvVar = (key: string): string => {
     `VITE_${key}`,
     `SUPABASE_${key}`, 
     `NEXT_PUBLIC_SUPABASE_${key}`,
-    `NEXT_PUBLIC_${key}`,
-    `REACT_APP_SUPABASE_${key}`
+    key 
   ];
   
   // @ts-ignore
@@ -23,24 +22,29 @@ const getEnvVar = (key: string): string => {
   for (const v of variations) {
     const val = metaEnv[v] || processEnv[v] || (typeof window !== 'undefined' ? (window as any)[v] : undefined);
     if (val && typeof val === 'string' && val.length > 5) {
-      return val.trim();
+      return val.split('\n')[0].trim();
     }
   }
   
   return '';
 };
 
+// Специальная функция для Gemini, возвращающая ключ исключительно из process.env.API_KEY
+export const getGeminiKey = (): string => {
+  return process.env.API_KEY || '';
+};
+
 const config = {
   url: getEnvVar('URL'),
   key: getEnvVar('ANON_KEY'),
-  serviceKey: getEnvVar('SERVICE_ROLE_KEY')
+  serviceKey: getEnvVar('SERVICE_ROLE_KEY'),
 };
 
 const PLACEHOLDER_URL = 'https://placeholder.supabase.co';
 
 export const isSupabaseConfigured = () => {
-  const hasUrl = !!config.url && config.url.startsWith('https://') && config.url !== PLACEHOLDER_URL;
-  const hasKey = !!config.key && config.key.length > 20 && config.key !== 'placeholder';
+  const hasUrl = !!config.url && config.url.includes('supabase.co') && config.url !== PLACEHOLDER_URL;
+  const hasKey = !!config.key && config.key.length > 20;
   return hasUrl && hasKey;
 };
 
@@ -56,6 +60,7 @@ export const supabase = createClient(
   }
 );
 
+// Added missing getAdminClient export for bulk operations
 export const getAdminClient = () => {
   return createClient(
     config.url || PLACEHOLDER_URL,
@@ -69,30 +74,40 @@ export const getAdminClient = () => {
   );
 };
 
+// Added missing getTgCredentials export for Telegram auth synchronization
+export const getTgCredentials = (tgId: string | number) => {
+  return {
+    email: `tg_${tgId}@muzhik.internal`,
+    password: `tg_pass_${tgId}_secure_core`
+  };
+};
+
 export const getDebugConfig = () => {
+  const metaEnv = (import.meta as any).env || {};
+  const procEnv = (typeof process !== 'undefined' ? process.env : {}) as any;
+
   return { 
     url: config.url || 'NOT_SET', 
-    keyPreview: config.key ? `${config.key.substring(0, 8)}...${config.key.substring(config.key.length - 4)}` : 'MISSING',
-    urlOk: !!config.url && config.url.includes('supabase.co') && config.url !== PLACEHOLDER_URL,
-    keyOk: !!config.key && config.key.length > 50 && config.key !== 'placeholder',
-    isManual: typeof window !== 'undefined' && !!localStorage.getItem('OVERRIDE_SUPABASE_URL')
+    urlOk: isSupabaseConfigured(),
+    // Маскированные ключи для проверки наличия
+    sources: {
+      vite_url: !!metaEnv.VITE_SUPABASE_URL,
+      vite_key: !!metaEnv.VITE_SUPABASE_ANON_KEY,
+      proc_key: !!procEnv.API_KEY,
+      local_override: typeof window !== 'undefined' && !!localStorage.getItem('OVERRIDE_SUPABASE_URL'),
+    },
+    geminiKeySet: !!getGeminiKey()
   };
 };
 
 export const saveManualConfig = (url: string, key: string) => {
-  if (url && url.includes('supabase.co')) localStorage.setItem('OVERRIDE_SUPABASE_URL', url.trim());
-  if (key && key.length > 20) localStorage.setItem('OVERRIDE_SUPABASE_ANON_KEY', key.trim());
+  if (url) localStorage.setItem('OVERRIDE_SUPABASE_URL', url.trim());
+  if (key) localStorage.setItem('OVERRIDE_SUPABASE_ANON_KEY', key.trim());
   window.location.reload();
 };
 
 export const clearManualConfig = () => {
-  localStorage.clear();
+  localStorage.removeItem('OVERRIDE_SUPABASE_URL');
+  localStorage.removeItem('OVERRIDE_SUPABASE_ANON_KEY');
   window.location.reload();
-};
-
-export const getTgCredentials = (tgId: number) => {
-  return {
-    email: `tg_${tgId}@muzhik.app`,
-    password: `pass_${tgId}_${(config.key || 'default').substring(0, 10)}`
-  };
 };
