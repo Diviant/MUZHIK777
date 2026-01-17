@@ -93,7 +93,7 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
 
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3-flash-preview',
         contents: query,
         config: { tools: [{ googleSearch: {} }] }
       });
@@ -104,10 +104,17 @@ const Rest: React.FC<Props> = ({ navigate, location }) => {
       }
     } catch (err: any) {
       console.error("REST_API_ERROR:", err);
-      const msg = err.message === 'API_KEY_MISSING' 
-        ? 'Ошибка: Ключ API не обнаружен. Проверь "Инженерный пульт" (ИИ_ПРОФИЛЬ).' 
-        : 'Бугор на совещании, зайди позже. (Ошибка поиска)';
-      setResult(msg);
+      let errorMsg = 'Сбой связи с Бугром.';
+      
+      if (err.message === 'API_KEY_MISSING') {
+        errorMsg = 'Ошибка: Ключ API не обнаружен. Проверь "Инженерный пульт" (ИИ_ПРОФИЛЬ).';
+      } else {
+        // Выводим более подробную информацию для пользователя, если это не секретные данные
+        errorMsg = `Ошибка: ${err.message?.includes('403') ? 'Доступ запрещен (проверь лимиты/ключ)' : 
+                   err.message?.includes('404') ? 'Модель не найдена (попробуй позже)' : 
+                   err.message || 'Ошибка поиска'}`;
+      }
+      setResult(errorMsg);
     } finally {
       setLoading(false);
     }
