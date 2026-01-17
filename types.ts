@@ -24,22 +24,10 @@ export enum Screen {
   ADMIN_VACANCIES = 'ADMIN_VACANCIES',
   VAKHTA_JOURNAL = 'VAKHTA_JOURNAL',
   MATERIALS_SEARCH = 'MATERIALS_SEARCH',
-  NOTES = 'NOTES'
-}
-
-export interface VakhtaEntry {
-  startDate: string;
-  expectedSalary: number;
-  advances: number;
-  travelExpenses: number;
-  foodExpenses: number;
-  sentHome: number;
-}
-
-export interface Note {
-  id: string;
-  text: string;
-  timestamp: number;
+  NOTES = 'NOTES',
+  FEED = 'FEED',
+  CONTRACT_GEN = 'CONTRACT_GEN',
+  CALCULATORS = 'CALCULATORS'
 }
 
 export interface User {
@@ -60,8 +48,32 @@ export interface User {
   isDonor: boolean;
   level: string;
   specialization: string[];
+  portfolioImages?: string[]; // Новое поле
 }
 
+// ... остальные интерфейсы без изменений
+export interface FeedPost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto?: string;
+  content: string;
+  imageUrl?: string;
+  createdAt: number;
+}
+export interface VakhtaEntry {
+  startDate: string;
+  expectedSalary: number;
+  advances: number;
+  travelExpenses: number;
+  foodExpenses: number;
+  sentHome: number;
+}
+export interface Note {
+  id: string;
+  text: string;
+  timestamp: number;
+}
 export interface MarketItem {
   id: string;
   authorId: string;
@@ -74,7 +86,6 @@ export interface MarketItem {
   contact: string;
   cityId?: string;
 }
-
 export interface ChatMessage {
   id: string;
   senderId: string;
@@ -83,7 +94,6 @@ export interface ChatMessage {
   voiceUrl?: string;
   timestamp: number;
 }
-
 export interface Conversation {
   id: string;
   participant: Partial<User>;
@@ -91,7 +101,6 @@ export interface Conversation {
   lastMessageTime?: number;
   unreadCount: number;
 }
-
 export interface Location { id: string; name: string; type: 'region' | 'city' | 'settlement'; parentId?: string; count?: number; }
 export interface Job { id: string; authorId?: string; title: string; salary: string; region: string; cityId?: string; isVahta: boolean; housing: boolean; description: string; contact: string; }
 export interface ServiceRequest { id: string; authorId?: string; category: string; title: string; description: string; price: string; author: string; contact: string; cityId?: string; }

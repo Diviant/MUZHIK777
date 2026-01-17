@@ -17,6 +17,9 @@ import BugorChat from './components/BugorChat';
 import VakhtaJournal from './components/VakhtaJournal';
 import MaterialsSearch from './components/MaterialsSearch';
 import Notes from './components/Notes';
+import Feed from './components/Feed';
+import ContractGen from './components/ContractGen';
+import Calculators from './components/Calculators';
 import Diagnostic from './components/Diagnostic';
 import { isSupabaseConfigured } from './lib/supabase';
 
@@ -91,6 +94,9 @@ const App: React.FC = () => {
       case Screen.VAKHTA_JOURNAL: return <VakhtaJournal navigate={navigate} user={user} />;
       case Screen.MATERIALS_SEARCH: return <MaterialsSearch navigate={navigate} location={selectedLocation} />;
       case Screen.NOTES: return <Notes navigate={navigate} user={user} />;
+      case Screen.FEED: return <Feed navigate={navigate} user={user!} />;
+      case Screen.CONTRACT_GEN: return <ContractGen navigate={navigate} user={user!} />;
+      case Screen.CALCULATORS: return <Calculators navigate={navigate} />;
       case Screen.MARKETPLACE: return <Marketplace items={marketItems} user={user!} navigate={navigate} onAddItem={async (item) => { await db.addMarketItem(item); setMarketItems(await db.getMarketItems()); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CHATS: return <ChatList user={user!} navigate={navigate} onSelectChat={(c) => { setActiveChat(c); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.CHAT_DETAIL: return <ChatDetail chat={activeChat} user={user!} navigate={navigate} />;
@@ -100,7 +106,7 @@ const App: React.FC = () => {
     }
   }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, selectedLocation, dbConnected, initData, navigate, updateUser]);
 
-  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.VAKHTA_JOURNAL, Screen.MATERIALS_SEARCH, Screen.NOTES, Screen.DIAGNOSTIC].includes(currentScreen);
+  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.VAKHTA_JOURNAL, Screen.MATERIALS_SEARCH, Screen.NOTES, Screen.DIAGNOSTIC, Screen.FEED, Screen.CONTRACT_GEN, Screen.CALCULATORS].includes(currentScreen);
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#080808]">

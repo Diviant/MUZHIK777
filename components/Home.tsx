@@ -31,40 +31,31 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
 
   const menuItems = [
     { 
+      screen: Screen.FEED, 
+      title: 'ГОРЯЧИЙ ЦЕХ', 
+      desc: 'Лента событий и новостей', 
+      badge: 'ЖИВОЙ ЭФИР',
+      icon: <span className="text-2xl">🔥</span>,
+      color: 'from-[#F5C518] to-[#9A7D0A]',
+      accent: '#000',
+      isSpecial: true
+    },
+    { 
       screen: Screen.BUGOR_CHAT, 
       title: 'НЕЙРО-БУГОР', 
       desc: user?.isPro ? 'Консультации по ГОСТ и СНиП' : 'Доступно только для PRO', 
       badge: user?.isPro ? 'ВЫСШИЙ ДОПУСК' : '🔒 ЗАБЛОКИРОВАНО',
       icon: <span className="text-2xl">{user?.isPro ? '👷‍♂️' : '🔐'}</span>,
-      color: user?.isPro ? 'from-[#F5C518] to-[#9A7D0A]' : 'from-[#1a1a1a] to-[#0a0a0a]',
-      accent: user?.isPro ? '#000000' : '#444',
-      isSpecial: true,
+      color: user?.isPro ? 'from-[#141414] to-[#080808]' : 'from-[#0a0a0a] to-[#000]',
+      accent: user?.isPro ? '#F5C518' : '#444',
       locked: !user?.isPro
     },
     { 
-      screen: Screen.MARKETPLACE, 
-      title: 'БАРАХОЛКА', 
-      desc: 'Инструмент и остатки', 
-      badge: 'БЫСТРЫЙ ТОРГ',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"/></svg>,
-      color: 'from-[#141414] to-[#080808]',
-      accent: '#F5C518'
-    },
-    { 
-      screen: Screen.HEAVY_MACHINERY, 
-      title: 'СПЕЦТЕХНИКА', 
-      desc: 'Аренда и услуги', 
-      badge: 'ТЯЖЕЛЫЙ ВЕС',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M22,17V15H20V12A3,3 0 0,0 17,9H14V7H16V5H14V2H12V5H10V7H12V9H9A3,3 0 0,0 6,12V15H4V17H2V19H22V17H20V17M10,12H14V15H10V12Z"/></svg>,
-      color: 'from-[#141414] to-[#080808]',
-      accent: '#FFFFFF'
-    },
-    { 
-      screen: Screen.CARGO, 
-      title: 'ПОПУТНЫЙ ГРУЗ', 
-      desc: 'Перевозки и логистика', 
-      badge: 'В ПУТИ',
-      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20,8H17V4H3C1.9,4 1,4.9 1,6V17H3A3,3 0 0,0 6,20A3,3 0 0,0 9,17H15A3,3 0 0,0 18,20A3,3 0 0,0 21,17H23V12L20,8M6,18.5A1.5,1.5 0 0,1 4.5,17A1.5,1.5 0 0,1 6,15.5A1.5,1.5 0 0,1 7.5,17A1.5,1.5 0 0,1 6,18.5M17,8L19.06,11H17V8M18,18.5A1.5,1.5 0 0,1 16.5,17A1.5,1.5 0 0,1 18,15.5A1.5,1.5 0 0,1 19.5,17A1.5,1.5 0 0,1 18,18.5Z"/></svg>,
+      screen: Screen.CONTRACT_GEN, 
+      title: 'БЕЗОПАСНАЯ СДЕЛКА', 
+      desc: 'Генератор договора на словах', 
+      badge: 'БЕЗ КИДАЛОВА',
+      icon: <span className="text-2xl">🤝</span>,
       color: 'from-[#141414] to-[#080808]',
       accent: '#F5C518'
     },
@@ -76,12 +67,20 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
       icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20,6C21.11,6 22,6.89 22,8V19C22,20.11 21.11,21 20,21H4C2.9,21 2,20.11 2,19V8C2,6.89 2.9,6 4,6H8V4C8,2.89 8.89,2 10,2H14C15.11,2 16,2.89 16,4V6H20M10,4V6H14V4H10M4,8V19H20V8H4M11,10H13V13H16V15H13V18H11V15H8V13H11V10Z"/></svg>,
       color: 'from-[#141414] to-[#080808]',
       accent: '#FFFFFF'
+    },
+    { 
+      screen: Screen.MARKETPLACE, 
+      title: 'БАРАХОЛКА', 
+      desc: 'Инструмент и остатки', 
+      badge: 'БЫСТРЫЙ ТОРГ',
+      icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12,18H6V14H12M21,14V12L20,7H4L3,12V14H4V20H14V14H18V20H20V14M20,4H4V6H20V4Z"/></svg>,
+      color: 'from-[#141414] to-[#080808]',
+      accent: '#F5C518'
     }
   ];
 
   return (
     <div className="flex-1 flex flex-col p-5 screen-fade pb-32 overflow-y-auto no-scrollbar bg-[#080808]">
-      {/* Шапка */}
       <header className="flex flex-col gap-4 py-4 mb-6 sticky top-0 bg-[#080808]/80 backdrop-blur-md z-30">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -111,7 +110,6 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
         </div>
       </header>
 
-      {/* Меню */}
       <div className="flex flex-col gap-3.5">
         {menuItems.map((item, idx) => (
           <button 
@@ -120,7 +118,6 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
             className={`active-scale bg-gradient-to-br ${item.color} ${item.isSpecial ? 'p-6' : 'p-5'} rounded-[30px] flex items-center justify-between relative overflow-hidden group border border-white/5 shadow-2xl stagger-item ${item.locked ? 'opacity-80' : ''}`}
             style={{ animationDelay: `${idx * 60}ms` }}
           >
-            {/* Текстура сетки на фоне карточки */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
                  style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '12px 12px' }}></div>
             
@@ -129,7 +126,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
                 {item.icon}
               </div>
               <div className="flex flex-col">
-                <div className={`inline-block text-[7px] font-black uppercase tracking-widest italic mb-1 ${item.isSpecial ? (item.locked ? 'text-[#F5C518]' : 'text-black/60') : 'text-zinc-500'}`} style={{color: (item.isSpecial && !item.locked) ? undefined : (item.locked ? '#F5C518' : item.accent)}}>{item.badge}</div>
+                <div className={`inline-block text-[7px] font-black uppercase tracking-widest italic mb-1 ${item.isSpecial ? (item.locked ? 'text-black/40' : 'text-black/60') : 'text-zinc-500'}`} style={{color: (item.isSpecial && !item.locked) ? undefined : (item.locked ? '#F5C518' : item.accent)}}>{item.badge}</div>
                 <h3 className={`text-[17px] font-black uppercase italic leading-none tracking-tighter mb-1.5 ${item.isSpecial ? (item.locked ? 'text-zinc-500' : 'text-black') : 'text-white'}`}>{item.title}</h3>
                 <p className={`text-[8px] font-bold uppercase tracking-[0.15em] italic ${item.isSpecial ? (item.locked ? 'text-zinc-700' : 'text-black/40') : 'text-zinc-600'}`}>{item.desc}</p>
               </div>
@@ -144,13 +141,6 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
             </div>
           </button>
         ))}
-      </div>
-      
-      {/* Нижний декор */}
-      <div className="mt-8 flex items-center justify-between opacity-10 px-2">
-        <div className="h-[1px] flex-1 bg-white"></div>
-        <span className="text-[6px] font-black uppercase tracking-[0.5em] px-4">Monolith System</span>
-        <div className="h-[1px] flex-1 bg-white"></div>
       </div>
     </div>
   );

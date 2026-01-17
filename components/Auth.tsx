@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase, getTgCredentials } from '../lib/supabase';
 import { Screen } from '../types';
@@ -68,6 +67,7 @@ const Auth: React.FC<Props> = ({ onSuccess, navigate }) => {
             }
           }
 
+          // Fix: Removed extra tgUser.id argument to match saveUser(user: User) signature
           await db.saveUser({
             id: signUpData.user.id,
             username: tgUser.username || `user_${tgUser.id}`,
@@ -85,7 +85,7 @@ const Auth: React.FC<Props> = ({ onSuccess, navigate }) => {
             isDonor: false,
             level: 'Мужик',
             specialization: []
-          }, tgUser.id);
+          });
 
           setTgAuthStatus('АВТОРИЗАЦИЯ...');
           await supabase.auth.signInWithPassword({ 

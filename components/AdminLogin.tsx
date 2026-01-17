@@ -25,11 +25,19 @@ const AdminLogin: React.FC<Props> = ({ navigate }) => {
       if (data.user) {
         // Проверяем роль в базе через наш MuzhikDatabase
         const profile = await db.getUser(data.user.id);
-        if (profile?.isAdmin) {
+        
+        // Если профиля нет вообще (редкий баг триггера)
+        if (!profile) {
+           alert('ПРОФИЛЬ НЕ НАЙДЕН: Сначала зайди как обычный юзер, чтобы запись создалась.');
+           setLoading(false);
+           return;
+        }
+
+        if (profile.isAdmin) {
           navigate(Screen.ADMIN_VACANCIES);
         } else {
           await supabase.auth.signOut();
-          alert('ДОСТУП ЗАПРЕЩЕН: У тебя нет прав администратора в Цехе.');
+          alert(`ДОСТУП ЗАПРЕЩЕН: Твой ID (${data.user.id}) не имеет флага is_admin в базе. Обратись к владельцу.`);
         }
       }
     } catch (err: any) {
@@ -40,7 +48,6 @@ const AdminLogin: React.FC<Props> = ({ navigate }) => {
   };
 
   const handleDemoLogin = () => {
-    // В деривативе просто идем в админку для демонстрации UI
     navigate(Screen.ADMIN_VACANCIES);
   };
 
