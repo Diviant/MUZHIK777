@@ -48,7 +48,6 @@ class MuzhikDatabase {
   async claimWelcomeBonus(userId: string): Promise<number | null> {
     if (!this.isValidUuid(userId)) return null;
     try {
-      // Проверяем статус в базе
       const { data: profile, error: getError } = await supabase
         .from('profiles')
         .select('welcome_bonus_claimed, points')
@@ -165,7 +164,33 @@ class MuzhikDatabase {
     };
   }
 
-  // ... остальные методы без изменений ...
+  async getActiveSOSSignals(): Promise<SOSSignal[]> {
+    // Получаем сигналы за последние 24 часа, которые не решены
+    const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('sos_signals')
+      .select('*')
+      .neq('status', 'RESOLVED')
+      .gt('created_at', last24h)
+      .order('created_at', { ascending: false });
+    
+    if (error) return [];
+    return data.map(s => ({
+      id: s.id.toString(),
+      userId: s.user_id,
+      userName: s.user_name,
+      scenario: s.scenario,
+      lat: s.lat,
+      lng: s.lng,
+      timestamp: new Date(s.created_at).getTime(),
+      status: s.status
+    }));
+  }
+
+  async updateSOSStatus(id: string, status: 'HELPING' | 'RESOLVED'): Promise<void> {
+    await supabase.from('sos_signals').update({ status }).eq('id', id);
+  }
+
   async getNotes(userId: string): Promise<Note[]> { 
     if (!this.isValidUuid(userId)) return [];
     const data = await this.safeQuery(

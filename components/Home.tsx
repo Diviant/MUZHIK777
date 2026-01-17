@@ -1,6 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Screen, User, Location } from '../types';
+import { Screen, User, Location, SOSSignal } from '../types';
+import { db } from '../database';
 import SOSOverlay from './SOSOverlay';
+import IncomingSOSAlert from './IncomingSOSAlert';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -13,9 +16,36 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showSOSOverlay, setShowSOSOverlay] = useState(false);
   const [sosProgress, setSosProgress] = useState(0);
+  const [incomingSignals, setIncomingSignals] = useState<SOSSignal[]>([]);
+  const [userCoords, setUserCoords] = useState<{lat: number, lng: number} | null>(null);
+  
   const sosTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   
   const tg = (window as any).Telegram?.WebApp;
+
+  // Мониторинг SOS сигналов
+  useEffect(() => {
+    if (!user || user.id === 'guest') return;
+
+    // Сначала получаем свои координаты
+    navigator.geolocation.getCurrentPosition((pos) => {
+      setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    });
+
+    const pollSOS = async () => {
+      const active = await db.getActiveSOSSignals();
+      // Фильтруем: не показывать свой собственный SOS
+      setIncomingSignals(active.filter(s => s.userId !== user.id));
+    };
+
+    pollSOS();
+    pollIntervalRef.current = setInterval(pollSOS, 20000); // Раз в 20 секунд проверяем
+
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    };
+  }, [user]);
 
   const handleSOSStart = () => {
     setSosProgress(0);
@@ -111,10 +141,24 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
       </header>
 
       {/* DASHBOARD */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="flex flex-col gap-3">
+        {/* INCOMING SOS ALERTS */}
+        {incomingSignals.map(sig => (
+          <IncomingSOSAlert 
+            key={sig.id} 
+            signal={sig} 
+            userLat={userCoords?.lat || 0} 
+            userLng={userCoords?.lng || 0}
+            onResolve={async () => {
+              const active = await db.getActiveSOSSignals();
+              setIncomingSignals(active.filter(s => s.userId !== user?.id));
+            }}
+          />
+        ))}
+
         <button 
           onClick={() => navigate(Screen.VAKHTA_CENTER)}
-          className="col-span-2 relative h-32 bg-zinc-900/40 border border-[#D4AF37]/20 rounded-[30px] overflow-hidden active-press p-6 text-left stagger-item shadow-xl backdrop-blur-sm"
+          className="relative h-32 bg-zinc-900/40 border border-[#D4AF37]/20 rounded-[30px] overflow-hidden active-press p-6 text-left stagger-item shadow-xl backdrop-blur-sm"
         >
           <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-black text-5xl italic mono">ROTA</div>
           <div className="flex items-center gap-2 mb-2">
@@ -126,7 +170,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
         </button>
 
         {/* SOS BUTTON */}
-        <div className="col-span-2 relative h-24 mt-2">
+        <div className="relative h-24 mt-2">
            <button 
             onMouseDown={handleSOSStart}
             onMouseUp={handleSOSEnd}
@@ -146,20 +190,22 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
         </div>
 
         {/* Grid Modules */}
-        {modules.map((mod, i) => (
-          <button 
-            key={i}
-            onClick={() => handleMenuClick({ screen: mod.screen })}
-            className="h-36 bg-zinc-900/40 rounded-[30px] border border-white/5 p-6 flex flex-col text-left active-press stagger-item shadow-lg"
-            style={{ animationDelay: `${100 + i * 50}ms` }}
-          >
-            <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl mb-auto">{mod.icon}</div>
-            <div>
-              <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none mb-1">{mod.title}</h3>
-              <p className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest mono italic">{mod.desc}</p>
-            </div>
-          </button>
-        ))}
+        <div className="grid grid-cols-2 gap-3">
+          {modules.map((mod, i) => (
+            <button 
+              key={i}
+              onClick={() => handleMenuClick({ screen: mod.screen })}
+              className="h-36 bg-zinc-900/40 rounded-[30px] border border-white/5 p-6 flex flex-col text-left active-press stagger-item shadow-lg"
+              style={{ animationDelay: `${100 + i * 50}ms` }}
+            >
+              <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl mb-auto">{mod.icon}</div>
+              <div>
+                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none mb-1">{mod.title}</h3>
+                <p className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest mono italic">{mod.desc}</p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* SIDE MENU OVERLAY */}
