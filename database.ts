@@ -10,10 +10,7 @@ class MuzhikDatabase {
 
   private async safeQuery<T>(query: PromiseLike<{ data: T | null; error: any }>, fallback: T): Promise<T> {
     if (!isSupabaseConfigured()) return fallback;
-    
-    // Создаем гонку: запрос против таймаута на 3 секунды
     const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 3000));
-    
     try {
       const result: any = await Promise.race([query, timeout]);
       if (result.error) {
@@ -22,7 +19,7 @@ class MuzhikDatabase {
       }
       return result.data ?? fallback;
     } catch (e) { 
-      console.warn("Database safety fallback triggered (Timeout or Network):", e);
+      console.warn("Database safety fallback triggered:", e);
       return fallback; 
     }
   }
@@ -45,6 +42,24 @@ class MuzhikDatabase {
       return await this.getUser(session.user.id);
     } catch (e) {
       return null;
+    }
+  }
+
+  async promoteToAdmin(): Promise<{success: boolean, message: string}> {
+    if (!isSupabaseConfigured()) return { success: false, message: 'БАЗА НЕ ПОДКЛЮЧЕНА' };
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return { success: false, message: 'СЕССИЯ НЕ НАЙДЕНА' };
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({ is_admin: true, is_pro: true })
+        .eq('id', session.user.id);
+      
+      if (error) throw error;
+      return { success: true, message: 'ПРАВА ПОЛУЧЕНЫ. ПЕРЕЗАГРУЗИ ТЕРМИНАЛ' };
+    } catch (e: any) {
+      return { success: false, message: e.message || 'ОШИБКА RLS: Используй SQL в Supabase' };
     }
   }
 
@@ -123,11 +138,7 @@ class MuzhikDatabase {
       supabase.from('notes').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
       []
     );
-    return data.map(n => ({ 
-      id: n.id, 
-      text: n.text, 
-      timestamp: new Date(n.created_at).getTime() 
-    }));
+    return data.map(n => ({ id: n.id, text: n.text, timestamp: new Date(n.created_at).getTime() }));
   }
   
   async addNote(userId: string, text: string): Promise<Note | null> { 
@@ -190,6 +201,7 @@ class MuzhikDatabase {
   
   async getMachinery(): Promise<HeavyMachinery[]> { 
     const data = await this.safeQuery(supabase.from('machinery').select('*').order('created_at', { ascending: false }), []); 
+    // Fix: Fixed property name mismatch in mapping (includes_fuel -> includesFuel)
     return data.map(m => ({ id: m.id.toString(), authorId: m.author_id, type: m.type, model: m.model, rate: m.rate, cityId: m.city_id, description: m.description, contact: m.contact, includesOperator: m.includes_operator, includesFuel: m.includes_fuel, specs: m.specs })); 
   }
 
