@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Screen, User, Job, ServiceRequest, Location, Team, AutoService, HeavyMachinery, HitchhikingCargo, Conversation, MarketItem, Hitchhiker } from './types';
 import { db } from './database';
@@ -52,48 +53,54 @@ const App: React.FC = () => {
   const [autoServices, setAutoServices] = useState<AutoService[]>([]);
   const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
 
-  const initData = useCallback(async () => {
-    setIsInitializing(true);
+  // Быстрая фоновая загрузка контента
+  const fetchContent = useCallback(async () => {
     try {
-      if (!isSupabaseConfigured()) {
-        setDbConnected(false);
-        setIsInitializing(false);
-        return;
-      }
+      // Запускаем все запросы параллельно, не дожидаясь их завершения для отрисовки UI
+      db.getJobs().then(setJobs).catch(() => {});
+      db.getMarketItems().then(setMarketItems).catch(() => {});
+      db.getCargo().then(setCargo).catch(() => {});
+      db.getHitchhikers().then(setHitchhikers).catch(() => {});
+      db.getTeams().then(setTeams).catch(() => {});
+      db.getAutoServices().then(setAutoServices).catch(() => {});
+      db.getMachinery().then(setMachinery).catch(() => {});
+    } catch (e) {
+      console.warn("Silent background fetch warning");
+    }
+  }, []);
 
-      const connectionTest = await db.testConnection();
-      setDbConnected(connectionTest.success);
+  const initData = useCallback(async () => {
+    // 1. Проверяем конфиг сразу (синхронно)
+    if (!isSupabaseConfigured()) {
+      setDbConnected(false);
+      setIsInitializing(false);
+      return;
+    }
 
+    try {
+      // 2. Сначала проверяем сессию — это быстро
       const sessionUser = await db.getCurrentSessionUser();
       if (sessionUser) {
         setUser(sessionUser);
         setIsGuest(false);
         setCurrentScreen(Screen.HOME);
+        setDbConnected(true);
+        setIsInitializing(false); // Отпускаем лоадер сразу после сессии
+        fetchContent(); // Контент грузим в фоне
+        return;
       }
-      
-      const [jobsData, marketData, cargoData, hitchData, teamsData, autoData, machineryData] = await Promise.all([
-        db.getJobs(),
-        db.getMarketItems(),
-        db.getCargo(),
-        db.getHitchhikers(),
-        db.getTeams(),
-        db.getAutoServices(),
-        db.getMachinery()
-      ]);
 
-      setJobs(jobsData);
-      setMarketItems(marketData);
-      setCargo(cargoData);
-      setHitchhikers(hitchData);
-      setTeams(teamsData);
-      setAutoServices(autoData);
-      setMachinery(machineryData);
-    } catch (e: any) {
-      console.error("Init failure:", e);
-    } finally {
+      // 3. Если сессии нет, показываем Welcome
       setIsInitializing(false);
+      
+      // 4. Тест соединения делаем в фоне, чтобы не вешать экран
+      db.testConnection().then(res => setDbConnected(res.success));
+    } catch (e: any) {
+      console.error("Init failed:", e);
+      setIsInitializing(false);
+      setCurrentScreen(Screen.WELCOME);
     }
-  }, []);
+  }, [fetchContent]);
 
   useEffect(() => {
     initData();
@@ -118,14 +125,20 @@ const App: React.FC = () => {
       specialization: []
     });
     setCurrentScreen(Screen.HOME);
-  }, []);
+    fetchContent();
+  }, [fetchContent]);
 
   const navigate = useCallback((screen: Screen) => {
     setCurrentScreen(screen);
   }, []);
 
   const currentView = useMemo(() => {
-    if (isInitializing) return <div className="flex-1 bg-black flex items-center justify-center text-[#D4AF37] font-black italic">ЦЕХ / ЗАГРУЗКА...</div>;
+    if (isInitializing) return (
+      <div className="flex-1 bg-black flex flex-col items-center justify-center">
+        <div className="w-12 h-12 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-6"></div>
+        <div className="text-[#D4AF37] font-black italic text-[10px] tracking-[0.5em] uppercase animate-pulse">ЦЕХ / ЗАГРУЗКА...</div>
+      </div>
+    );
 
     switch (currentScreen) {
       case Screen.WELCOME: return <Welcome onStart={() => navigate(user ? Screen.HOME : Screen.AUTH)} onGuest={handleGuestEntry} navigate={navigate} />;
@@ -161,7 +174,7 @@ const App: React.FC = () => {
       case Screen.REST: return <Rest navigate={navigate} location={selectedLocation} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
-  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest]);
+  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest, fetchContent]);
 
   const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER].includes(currentScreen);
 
