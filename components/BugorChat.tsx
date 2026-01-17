@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Screen, User, ChatMessage } from '../types';
-import { GoogleGenAI } from '@google/genai';
-import { getGeminiKey } from '../lib/supabase';
+import { GoogleGenAI } from "@google/genai";
 
 interface Props {
   user: User;
@@ -47,13 +47,8 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
     setLoading(true);
 
     try {
-      const apiKey = getGeminiKey();
-      
-      if (!apiKey) {
-        throw new Error('API_KEY_MISSING');
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
+      // Use process.env.API_KEY directly as per guidelines
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: currentInput,
@@ -83,9 +78,7 @@ const BugorChat: React.FC<Props> = ({ user, navigate }) => {
       
       const errMsg = err.message?.toLowerCase() || '';
 
-      if (err.message === 'API_KEY_MISSING') {
-        errorMsg = '🔐 ОШИБКА: КЛЮЧ НЕ НАЙДЕН. Зайди в "Мастерская -> AI_КЛЮЧ" и вставь его.';
-      } else if (errMsg.includes('leaked')) {
+      if (errMsg.includes('leaked')) {
         errorMsg = '❌ ТВОЙ КЛЮЧ ЗАБЛОКИРОВАН. Создай НОВЫЙ ключ в Google AI Studio.';
       } else if (errMsg.includes('403') || errMsg.includes('fetch') || errMsg.includes('location')) {
         errorMsg = '🚫 БЛОКИРОВКА РЕГИОНА. Мужик, если ты в РФ — включи VPN, иначе Google не пускает!';

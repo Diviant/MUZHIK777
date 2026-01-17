@@ -1,7 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { Screen, User } from '../types';
 import { GoogleGenAI } from '@google/genai';
-import { getGeminiKey } from '../lib/supabase';
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -32,10 +32,8 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
     setSources([]);
 
     try {
-      const apiKey = getGeminiKey();
-      if (!apiKey) throw new Error('API_KEY_MISSING');
-
-      const ai = new GoogleGenAI({ apiKey });
+      // Use process.env.API_KEY directly as per guidelines
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const prompt = `Найди актуальные билеты на ${transport === 'FLIGHT' ? 'самолет' : 'поезд'} из "${from}" в "${to}" на ${date}. 
       Укажи цены, время в пути и номера рейсов/поездов. Дай ссылки на покупку или сайты агрегаторов. 
       Напиши краткий совет от Бугра про дорогу.`;
@@ -52,10 +50,7 @@ const Logistics: React.FC<Props> = ({ navigate, user }) => {
       }
     } catch (err: any) {
       console.error("LOGISTICS_API_ERROR:", err);
-      const msg = err.message === 'API_KEY_MISSING' 
-        ? 'Ошибка: Ключ API не обнаружен. Настрой его в Инженерном пульте.'
-        : `Сбой связи. Ошибка: ${err.message}`;
-      setRawResult(msg);
+      setRawResult(`Сбой связи. Ошибка: ${err.message}`);
     } finally {
       setLoading(false);
     }

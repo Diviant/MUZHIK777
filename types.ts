@@ -31,29 +31,19 @@ export enum Screen {
   GALLERY = 'GALLERY',
   VAKHTA_CENTER = 'VAKHTA_CENTER',
   MAP_EXPLORER = 'MAP_EXPLORER',
-  CRM_DASHBOARD = 'CRM_DASHBOARD',
+  SVO_CENTER = 'SVO_CENTER',
   CHECKLISTS = 'CHECKLISTS',
   SOS_SETTINGS = 'SOS_SETTINGS',
   LOGISTICS = 'LOGISTICS',
   HITCHHIKERS = 'HITCHHIKERS',
-  REST = 'REST'
+  REST = 'REST',
+  ABOUT = 'ABOUT'
 }
 
 export type SOSScenario = 'ACCIDENT' | 'INJURY' | 'STUCK' | 'THREAT' | 'OTHER';
 
-export interface SOSSignal {
-  id: string;
-  userId: string;
-  userName: string;
-  scenario: SOSScenario;
-  lat: number;
-  lng: number;
-  timestamp: number;
-  status: 'SENT' | 'HELPING' | 'RESOLVED';
-}
-
 export interface User {
-  id: string; 
+  id: string;
   username: string;
   firstName: string;
   photoUrl?: string;
@@ -62,72 +52,125 @@ export interface User {
   isPro: boolean;
   isAdmin: boolean;
   isVerified: boolean;
-  welcomeBonusClaimed: boolean; // Флаг получения 1300 баллов
-  verificationType?: 'PASSPORT' | 'IP' | 'NONE';
-  badges?: string[];
+  welcomeBonusClaimed: boolean;
   isReliable: boolean;
-  isBanned?: boolean;
   referralCode: string;
-  referredById?: string;
   dealsCount: number;
   isDonor: boolean;
   level: string;
   specialization: string[];
-  portfolioImages?: string[]; 
-  trustedContacts?: string[]; 
+  portfolioImages?: string[];
+  trustedContacts?: string[];
+  referredById?: string;
+  isBanned?: boolean;
 }
 
-export interface Job { 
-  id: string; 
-  authorId?: string; 
-  title: string; 
-  salary: string; 
-  region: string; 
-  cityId?: string; 
-  isVahta: boolean; 
-  vakhtaDuration?: string; 
+export interface Job {
+  id: string;
+  title: string;
+  salary: string;
+  region: string;
+  cityId?: string;
+  isVahta: boolean;
+  housing: boolean;
+  description: string;
+  contact: string;
+  authorId?: string;
+  vakhtaDuration?: string;
   isVerifiedVakhta?: boolean;
-  housing: boolean; 
   food?: boolean;
   travel?: boolean;
-  description: string; 
-  contact: string; 
 }
 
-export interface CRMProject {
+export interface ServiceRequest {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  price: string;
+  author: string;
+  contact: string;
+  cityId?: string;
+  authorId?: string;
+}
+
+export interface Location {
   id: string;
   name: string;
-  address: string;
-  workersCount: number;
-  status: 'ACTIVE' | 'DONE' | 'PENDING';
-  budget: string;
-  lastPhoto?: string;
+  type: 'region' | 'city';
+  count: number;
+  parentId?: string;
 }
 
-export interface FeedPost {
+export interface TeamMember {
+  role: string;
+  count: number;
+}
+
+export interface Team {
   id: string;
-  authorId: string;
-  authorName: string;
-  authorPhoto?: string;
-  content: string;
-  imageUrl?: string;
-  createdAt: number;
-  isSos?: boolean;
+  name: string;
+  leader: string;
+  category: string;
+  memberCount: number;
+  structure: TeamMember[];
+  equipment: string[];
+  description: string;
+  rating: number;
+  cityId?: string;
+  contact: string;
+  authorId?: string;
 }
-export interface VakhtaEntry {
-  startDate: string;
-  endDate: string;
-  expectedSalary: number;
-  advances: number;
-  travelExpenses: number;
-  foodExpenses: number;
-  sentHome: number;
-}
-export interface Note {
+
+export interface AutoService {
   id: string;
-  text: string;
-  timestamp: number;
+  name: string;
+  category: string;
+  address: string;
+  description: string;
+  rating: number;
+  cityId?: string;
+  contact: string;
+  features: string[];
+  authorId?: string;
 }
+
+export interface HeavyMachinery {
+  id: string;
+  type: string;
+  model: string;
+  rate: string;
+  cityId?: string;
+  description: string;
+  contact: string;
+  includesOperator: boolean;
+  includesFuel: boolean;
+  specs: string[];
+  authorId?: string;
+}
+
+export interface HitchhikingCargo {
+  id: string;
+  authorId?: string;
+  title: string;
+  routeFrom: string;
+  routeTo: string;
+  cargoType: string;
+  weight: string;
+  price: string;
+  departureDate: string;
+  description: string;
+  contact: string;
+}
+
+export interface Conversation {
+  id: string;
+  participant: Partial<User>;
+  unreadCount: number;
+  lastMessage?: string;
+  lastMessageTime?: number;
+}
+
 export interface MarketItem {
   id: string;
   authorId: string;
@@ -140,24 +183,6 @@ export interface MarketItem {
   contact: string;
   cityId?: string;
 }
-export interface ChatMessage {
-  id: string;
-  senderId: string;
-  text?: string;
-  image?: string;
-  voiceUrl?: string;
-  timestamp: number;
-}
-export interface Conversation {
-  id: string;
-  participant: Partial<User>;
-  lastMessage?: string;
-  lastMessageTime?: number;
-  unreadCount: number;
-}
-export interface Location { id: string; name: string; type: 'region' | 'city' | 'settlement'; parentId?: string; count?: number; }
-export interface ServiceRequest { id: string; authorId?: string; category: string; title: string; description: string; price: string; author: string; contact: string; cityId?: string; }
-export interface HitchhikingCargo { id: string; authorId?: string; title: string; routeFrom: string; routeTo: string; cargoType: string; weight: string; price: string; departureDate: string; description: string; contact: string; }
 
 export interface Hitchhiker {
   id: string;
@@ -171,10 +196,62 @@ export interface Hitchhiker {
   seats: number;
   description: string;
   contact: string;
-  canTakeCargo?: boolean;
+  canTakeCargo: boolean;
 }
 
-export interface TeamMember { role: string; count: number; }
-export interface Team { id: string; authorId?: string; name: string; leader: string; category: string; memberCount: number; structure: TeamMember[]; equipment: string[]; description: string; rating: number; cityId?: string; contact: string; }
-export interface AutoService { id: string; authorId?: string; name: string; category: string; address: string; description: string; rating: number; cityId?: string; contact: string; features: string[]; }
-export interface HeavyMachinery { id: string; authorId?: string; type: string; model: string; rate: string; cityId?: string; description: string; contact: string; includesOperator: boolean; includesFuel: boolean; specs: string[]; }
+export interface VakhtaEntry {
+  startDate: string;
+  endDate: string;
+  expectedSalary: number;
+  advances: number;
+  travelExpenses: number;
+  foodExpenses: number;
+  sentHome: number;
+}
+
+export interface Note {
+  id: string;
+  text: string;
+  timestamp: number;
+}
+
+export interface FeedPost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorPhoto?: string;
+  content: string;
+  imageUrl?: string;
+  createdAt: number;
+  isSos?: boolean;
+}
+
+export interface SOSSignal {
+  id: string;
+  userId: string;
+  userName: string;
+  scenario: SOSScenario;
+  lat: number;
+  lng: number;
+  timestamp: number;
+  status: 'SENT' | 'HELPING' | 'RESOLVED';
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  text?: string;
+  image?: string;
+  voiceUrl?: string;
+  timestamp: number;
+}
+
+export interface CRMProject {
+  id: string;
+  name: string;
+  address: string;
+  workersCount: number;
+  status: 'ACTIVE' | 'DONE';
+  budget: string;
+  lastPhoto?: string;
+}

@@ -24,27 +24,18 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   
   const tg = (window as any).Telegram?.WebApp;
 
-  // Мониторинг SOS сигналов
   useEffect(() => {
     if (!user || user.id === 'guest') return;
-
-    // Сначала получаем свои координаты
     navigator.geolocation.getCurrentPosition((pos) => {
       setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
     });
-
     const pollSOS = async () => {
       const active = await db.getActiveSOSSignals();
-      // Фильтруем: не показывать свой собственный SOS
       setIncomingSignals(active.filter(s => s.userId !== user.id));
     };
-
     pollSOS();
-    pollIntervalRef.current = setInterval(pollSOS, 20000); // Раз в 20 секунд проверяем
-
-    return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
-    };
+    pollIntervalRef.current = setInterval(pollSOS, 20000);
+    return () => { if (pollIntervalRef.current) clearInterval(pollIntervalRef.current); };
   }, [user]);
 
   const handleSOSStart = () => {
@@ -76,9 +67,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
       if (tg?.showConfirm) {
         tg.showConfirm(
           "Бугор дает советы только PRO-мужикам. Хочешь зайти в профиль и активировать статус?",
-          (confirmed: boolean) => {
-            if (confirmed) navigate(Screen.PROFILE);
-          }
+          (confirmed: boolean) => { if (confirmed) navigate(Screen.PROFILE); }
         );
       } else {
         alert("Бугор консультирует только PRO-аккаунты. Зайди в профиль!");
@@ -92,7 +81,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   const modules = [
     { icon: '📡', title: 'Эфир', desc: 'ОБЩИЙ ЧАТ', screen: Screen.FEED },
     { icon: '🎫', title: 'Логистика', desc: 'ПОИСК БИЛЕТОВ', screen: Screen.LOGISTICS },
-    { icon: '🏗️', title: 'Мини-CRM', desc: 'УПРАВЛЕНИЕ', screen: Screen.CRM_DASHBOARD },
+    { icon: '🪖', title: 'Служба', desc: 'СВО / СОВЕТЫ', screen: Screen.SVO_CENTER },
     { icon: '🚗', title: 'Попутчики', desc: 'ЕХАТЬ ВМЕСТЕ', screen: Screen.HITCHHIKERS },
     { icon: '📏', title: 'Инструменты', desc: 'КАЛЬКУЛЯТОРЫ', screen: Screen.CALCULATORS },
     { icon: '🧖‍♂️', title: 'Отдых', desc: 'БАНЯ И ПИВО', screen: Screen.REST },
@@ -104,153 +93,121 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
     <div className="flex-1 flex flex-col p-4 pb-24 overflow-y-auto no-scrollbar z-10 relative pt-safe h-full bg-[#050505]">
       {showSOSOverlay && user && <SOSOverlay user={user} onClose={() => setShowSOSOverlay(false)} />}
       
-      {/* COMPACT HEADER */}
       <header className="flex items-center justify-between py-3 mb-4 sticky top-0 bg-[#050505]/95 backdrop-blur-xl z-40 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsMenuOpen(true)}
-            className="w-10 h-10 bg-zinc-900 border border-white/10 rounded-xl flex flex-col items-center justify-center gap-1 active-press"
-          >
+          <button onClick={() => setIsMenuOpen(true)} className="w-10 h-10 bg-zinc-900 border border-white/10 rounded-xl flex flex-col items-center justify-center gap-1 active-press">
             <div className="w-4 h-[1.5px] bg-[#D4AF37] rounded-full"></div>
             <div className="w-4 h-[1.5px] bg-[#D4AF37] rounded-full"></div>
             <div className="w-2 h-[1.5px] bg-[#D4AF37] rounded-full self-start ml-3"></div>
           </button>
-
           <div className="flex flex-col">
-            <h2 className="text-lg font-black italic text-white uppercase tracking-tighter leading-none">
-              ЦЕХ <span className="text-[#D4AF37]">/</span> {location?.name || 'РФ'}
-            </h2>
+            <h2 className="text-lg font-black italic text-white uppercase tracking-tighter leading-none">ЦЕХ <span className="text-[#D4AF37]">/</span> {location?.name || 'РФ'}</h2>
             <div className="flex items-center gap-1 mt-1">
               <div className={`w-1 h-1 rounded-full ${dbConnected ? 'bg-[#D4AF37]' : 'bg-red-600 animate-pulse'}`}></div>
               <span className="text-[6px] text-zinc-600 font-black uppercase tracking-widest mono">{dbConnected ? 'SECURE_LINK' : 'OFFLINE'}</span>
-              <span className="text-[6px] text-[#D4AF37]/40 font-black uppercase tracking-widest mono ml-2">REV_4.6.1_HOT</span>
             </div>
           </div>
         </div>
-
-        <button 
-          onClick={() => navigate(Screen.PROFILE)} 
-          className="bg-zinc-900/50 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-3 active-press"
-        >
+        <button onClick={() => navigate(Screen.PROFILE)} className="bg-zinc-900/50 border border-white/10 rounded-xl px-4 py-2 flex items-center gap-3 active-press">
           <div className="flex flex-col items-end">
-            <span className="gold-text text-sm font-black italic leading-none">{user?.points || 0}</span>
-            <span className="text-[5px] text-zinc-700 font-black uppercase tracking-widest mt-1">CREDITS</span>
+            <span className="text-[10px] font-black text-white uppercase italic leading-none">{user?.firstName || 'Мужик'}</span>
+            <span className="text-[7px] text-[#D4AF37] font-black uppercase tracking-widest mt-1">LEVEL_{user?.level || 'Новичок'}</span>
           </div>
-          <div className="w-6 h-6 bg-[#D4AF37] rounded-lg flex items-center justify-center text-[10px] text-black font-black">D</div>
+          <div className="w-8 h-8 bg-zinc-800 rounded-lg overflow-hidden border border-white/5">
+            {user?.photoUrl ? <img src={user.photoUrl} className="w-full h-full object-cover" alt="" /> : <span className="flex items-center justify-center h-full text-xs">👤</span>}
+          </div>
         </button>
       </header>
 
-      {/* DASHBOARD */}
-      <div className="flex flex-col gap-3">
-        {/* INCOMING SOS ALERTS */}
-        {incomingSignals.map(sig => (
-          <IncomingSOSAlert 
-            key={sig.id} 
-            signal={sig} 
-            userLat={userCoords?.lat || 0} 
-            userLng={userCoords?.lng || 0}
-            onResolve={async () => {
-              const active = await db.getActiveSOSSignals();
-              setIncomingSignals(active.filter(s => s.userId !== user?.id));
-            }}
-          />
-        ))}
-
+      {/* SOS SECTION */}
+      <div className="mb-6">
         <button 
-          onClick={() => navigate(Screen.VAKHTA_CENTER)}
-          className="relative h-32 bg-zinc-900/40 border border-[#D4AF37]/20 rounded-[30px] overflow-hidden active-press p-6 text-left stagger-item shadow-xl backdrop-blur-sm"
+          onMouseDown={handleSOSStart}
+          onMouseUp={handleSOSEnd}
+          onTouchStart={handleSOSStart}
+          onTouchEnd={handleSOSEnd}
+          className="w-full h-24 bg-red-900/10 border border-red-600/30 rounded-[30px] flex items-center justify-between px-8 relative overflow-hidden active:scale-[0.98] transition-all"
         >
-          <div className="absolute top-0 right-0 p-4 opacity-[0.05] font-black text-5xl italic mono">ROTA</div>
-          <div className="flex items-center gap-2 mb-2">
-             <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse shadow-[0_0_10px_gold]"></div>
-             <span className="text-[8px] text-zinc-500 font-black uppercase tracking-[0.3em] mono">VAKHTA_CENTER</span>
+          <div className="absolute left-0 top-0 bottom-0 bg-red-600/20 transition-all duration-75" style={{ width: `${sosProgress}%` }}></div>
+          <div className="flex flex-col items-start relative z-10">
+            <span className="text-red-600 text-[10px] font-black uppercase tracking-[0.3em] mb-1 italic">EMERGENCY_LINK</span>
+            <h3 className="text-xl font-black text-white italic uppercase tracking-tighter">КНОПКА SOS</h3>
           </div>
-          <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none mb-1">ВАХТА-ЦЕНТР</h3>
-          <p className="text-[8px] gold-text font-bold uppercase tracking-widest italic opacity-70">ПРОВЕРЕННЫЕ ОБЪЕКТЫ / ЖИЛЬЕ / ЕДА</p>
+          <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.3)] relative z-10">
+             <span className="text-2xl">🚨</span>
+          </div>
         </button>
-
-        {/* SOS BUTTON */}
-        <div className="relative h-24 mt-2">
-           <button 
-            onMouseDown={handleSOSStart}
-            onMouseUp={handleSOSEnd}
-            onTouchStart={handleSOSStart}
-            onTouchEnd={handleSOSEnd}
-            className="w-full h-full bg-red-950/20 border border-red-600/30 rounded-[30px] flex items-center justify-center gap-4 relative overflow-hidden active:scale-[0.98] transition-all"
-           >
-             <div className="absolute left-0 top-0 h-full bg-red-600/20 transition-all duration-100 ease-linear" style={{ width: `${sosProgress}%` }}></div>
-             <div className="w-12 h-12 bg-red-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.4)] relative z-10">
-                <span className="text-2xl animate-pulse">🆘</span>
-             </div>
-             <div className="text-left relative z-10">
-                <h3 className="text-xl font-black text-red-500 uppercase italic tracking-tighter leading-none">SOS ПОМОЩЬ</h3>
-                <p className="text-[8px] text-red-700 font-bold uppercase tracking-widest italic mt-1">УДЕРЖИВАЙ 3 СЕК ДЛЯ АКТИВАЦИИ</p>
-             </div>
-           </button>
-        </div>
-
-        {/* Grid Modules */}
-        <div className="grid grid-cols-2 gap-3">
-          {modules.map((mod, i) => (
-            <button 
-              key={i}
-              onClick={() => handleMenuClick({ screen: mod.screen })}
-              className="h-36 bg-zinc-900/40 rounded-[30px] border border-white/5 p-6 flex flex-col text-left active-press stagger-item shadow-lg"
-              style={{ animationDelay: `${100 + i * 50}ms` }}
-            >
-              <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl mb-auto">{mod.icon}</div>
-              <div>
-                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none mb-1">{mod.title}</h3>
-                <p className="text-[7px] text-zinc-700 font-bold uppercase tracking-widest mono italic">{mod.desc}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+        <p className="text-[7px] text-zinc-700 font-black uppercase tracking-widest mt-3 text-center italic opacity-40">УДЕРЖИВАЙ ДЛЯ АКТИВАЦИИ СИГНАЛА ТРЕВОГИ</p>
       </div>
 
-      {/* SIDE MENU OVERLAY */}
+      {/* INCOMING SOS ALERTS */}
+      {incomingSignals.length > 0 && (
+        <div className="space-y-3 mb-6">
+          {incomingSignals.map(s => (
+            <IncomingSOSAlert key={s.id} signal={s} userLat={userCoords?.lat || 0} userLng={userCoords?.lng || 0} onResolve={() => setIncomingSignals(prev => prev.filter(ps => ps.id !== s.id))} />
+          ))}
+        </div>
+      )}
+
+      {/* GRID MODULES */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {modules.map((mod, i) => (
+          <button 
+            key={i}
+            onClick={() => handleMenuClick(mod)}
+            className="bg-zinc-900/40 border border-white/5 p-6 rounded-[30px] flex flex-col items-start active-press transition-all group text-left"
+          >
+            <div className="text-2xl mb-4 group-hover:scale-110 transition-transform">{mod.icon}</div>
+            <h3 className="text-white font-black text-[11px] uppercase italic tracking-tight mb-1">{mod.title}</h3>
+            <p className="text-zinc-600 text-[7px] font-black uppercase tracking-widest mono">{mod.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* BANNER */}
+      <div className="bg-gradient-to-r from-[#D4AF37] to-[#9A7D0A] p-6 rounded-[35px] flex items-center justify-between mb-8 shadow-xl active-press" onClick={() => navigate(Screen.VAKHTA_CENTER)}>
+         <div className="flex flex-col items-start">
+            <h4 className="text-black font-black text-xl italic uppercase tracking-tighter leading-none mb-1">ГОРЯЧАЯ ВАХТА</h4>
+            <p className="text-black/60 text-[8px] font-black uppercase tracking-widest italic">ПРОВЕРЕННЫЕ ОБЪЕКТЫ</p>
+         </div>
+         <div className="w-10 h-10 bg-black/10 rounded-xl flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+         </div>
+      </div>
+
+      {/* SIDEBAR MENU */}
       {isMenuOpen && (
-        <div className="fixed inset-0 z-[200] flex">
-           <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsMenuOpen(false)}></div>
-           <div className="relative w-72 h-full bg-[#050505] border-r border-white/10 flex flex-col animate-in slide-in-from-left duration-500 shadow-2xl">
-              <div className="p-8 border-b border-white/5">
-                 <h2 className="text-2xl font-black italic gold-text uppercase tracking-tighter leading-none mb-1">МЕНЮ ЦЕХА</h2>
-                 <p className="text-[6px] text-zinc-700 font-black uppercase tracking-[0.4em] mono">v4.6.1_SECURE_CHANNEL</p>
+        <div className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-2xl animate-in fade-in duration-300">
+           <div className="p-8 flex flex-col h-full pt-safe">
+              <div className="flex justify-between items-center mb-12">
+                 <h2 className="text-3xl font-black italic text-white uppercase tracking-tighter gold-text">МЕНЮ_ЦЕХА</h2>
+                 <button onClick={() => setIsMenuOpen(false)} className="w-12 h-12 bg-zinc-900 rounded-2xl flex items-center justify-center text-[#D4AF37]">✕</button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 no-scrollbar">
+              
+              <div className="space-y-4 overflow-y-auto no-scrollbar pb-10">
                  {[
-                   { icon: '👷‍♂️', title: 'Совет Бугра', desc: 'AI ПОМОЩНИК', screen: Screen.BUGOR_CHAT, proRequired: true },
-                   { icon: '📊', title: 'Журнал Вахты', desc: 'СМЕТА И ДОХОДЫ', screen: Screen.VAKHTA_JOURNAL },
-                   { icon: '📝', title: 'Заметки', desc: 'ЛИЧНЫЕ ЗАПИСИ', screen: Screen.NOTES },
-                   { icon: '🏷️', title: 'Мои объявления', desc: 'УПРАВЛЕНИЕ', screen: Screen.MY_ADS },
-                   { icon: '🏆', title: 'Зал Славы', desc: 'РЕЙТИНГ', screen: Screen.RANKING },
-                   { icon: '🛠️', title: 'Мастерская', desc: 'ДИАГНОСТИКА', screen: Screen.DIAGNOSTIC },
-                 ].map((item, i) => (
+                   { icon: '👷‍♂️', label: 'КАБИНЕТ МУЖИКА', screen: Screen.PROFILE },
+                   { icon: '💼', label: 'ПРЯМАЯ РАБОТА', screen: Screen.JOBS },
+                   { icon: '💰', label: 'БАРАХОЛКА', screen: Screen.MARKETPLACE },
+                   { icon: '🛡️', label: 'ЗАЛ СЛАВЫ', screen: Screen.RANKING },
+                   { icon: '⚓', label: 'ПРИГЛАСИТЬ СВОИХ', screen: Screen.REFERRAL },
+                   { icon: '🤖', label: 'СОВЕТ БУГРА (PRO)', screen: Screen.BUGOR_CHAT, proRequired: true },
+                   { icon: '⚙️', label: 'ПУЛЬТ УПРАВЛЕНИЯ', screen: Screen.DIAGNOSTIC },
+                   { icon: '🔐', label: 'АДМИН-ЦЕНТР', screen: Screen.ADMIN_LOGIN },
+                 ].map((item, idx) => (
                    <button 
-                    key={i} 
+                    key={idx} 
                     onClick={() => handleMenuClick(item)}
-                    className="w-full p-4 rounded-2xl bg-zinc-900/40 border border-white/5 flex items-center gap-4 active-press text-left group"
+                    className="w-full p-5 bg-zinc-900/50 border border-white/5 rounded-[25px] flex items-center gap-4 active-press group text-left"
                    >
-                     <div className="w-10 h-10 bg-black/40 rounded-xl flex items-center justify-center border border-white/5 text-xl group-hover:scale-110 transition-transform">
-                       {item.icon}
-                     </div>
-                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black uppercase text-white italic group-hover:text-[#D4AF37] transition-colors">{item.title}</span>
-                        <span className="text-[6px] text-zinc-700 font-black uppercase tracking-widest mono">{item.desc}</span>
-                     </div>
-                     {item.proRequired && !user?.isPro && (
-                       <span className="ml-auto text-[8px]">🔒</span>
-                     )}
+                     <span className="text-2xl grayscale group-hover:grayscale-0 transition-all">{item.icon}</span>
+                     <span className="text-xs font-black text-white uppercase italic tracking-tighter">{item.label}</span>
                    </button>
                  ))}
               </div>
-              <div className="p-6 border-t border-white/5">
-                 <button 
-                   onClick={() => setIsMenuOpen(false)}
-                   className="w-full py-4 bg-zinc-900 border border-white/5 rounded-2xl text-zinc-600 text-[8px] font-black uppercase tracking-[0.3em] italic"
-                 >
-                   ЗАКРЫТЬ ТЕРМИНАЛ
-                 </button>
+              
+              <div className="mt-auto text-center opacity-20">
+                 <span className="text-[7px] text-zinc-500 font-black uppercase tracking-[1em] mono">CORE_TERMINAL_v4.5</span>
               </div>
            </div>
         </div>
@@ -259,4 +216,5 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   );
 };
 
+// Fix: Missing default export was causing import error in App.tsx
 export default Home;

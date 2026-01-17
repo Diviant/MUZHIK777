@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 
 const getEnvVar = (key: string): string => {
@@ -26,20 +27,6 @@ const getEnvVar = (key: string): string => {
   }
   
   return '';
-};
-
-// Функция для Gemini: проверяет локальный "ключ из профиля", затем системный
-export const getGeminiKey = (): string => {
-  if (typeof window !== 'undefined') {
-    const profileKey = localStorage.getItem('MUZHIK_PROFILE_GEMINI_KEY');
-    if (profileKey && profileKey.length > 10) return profileKey.trim();
-  }
-  
-  // @ts-ignore
-  const metaEnv = import.meta.env || {};
-  const processEnv = typeof process !== 'undefined' ? (process.env as any) : {};
-  
-  return metaEnv.VITE_API_KEY || processEnv.API_KEY || '';
 };
 
 const config = {
@@ -99,23 +86,20 @@ export const getDebugConfig = () => {
       vite_url: !!metaEnv.VITE_SUPABASE_URL,
       vite_key: !!metaEnv.VITE_SUPABASE_ANON_KEY,
       proc_key: !!procEnv.API_KEY || !!metaEnv.VITE_API_KEY,
-      local_override: typeof window !== 'undefined' && !!localStorage.getItem('OVERRIDE_SUPABASE_URL'),
-      profile_ai_key: typeof window !== 'undefined' && !!localStorage.getItem('MUZHIK_PROFILE_GEMINI_KEY')
+      local_override: typeof window !== 'undefined' && !!localStorage.getItem('OVERRIDE_SUPABASE_URL')
     },
-    geminiKeySet: !!getGeminiKey()
+    geminiKeySet: !!process.env.API_KEY
   };
 };
 
-export const saveManualConfig = (url: string, key: string, gKey?: string) => {
+export const saveManualConfig = (url: string, key: string) => {
   if (url) localStorage.setItem('OVERRIDE_SUPABASE_URL', url.trim());
   if (key) localStorage.setItem('OVERRIDE_SUPABASE_ANON_KEY', key.trim());
-  if (gKey) localStorage.setItem('MUZHIK_PROFILE_GEMINI_KEY', gKey.trim());
   window.location.reload();
 };
 
 export const clearManualConfig = () => {
   localStorage.removeItem('OVERRIDE_SUPABASE_URL');
   localStorage.removeItem('OVERRIDE_SUPABASE_ANON_KEY');
-  localStorage.removeItem('MUZHIK_PROFILE_GEMINI_KEY');
   window.location.reload();
 };

@@ -26,11 +26,19 @@ const Welcome: React.FC<Props> = ({ onStart, onGuest, navigate }) => {
           <span className="gold-text">СИЛЫ</span>
         </h1>
 
-        <div className="max-w-[280px] mx-auto space-y-4">
+        <div className="max-w-[280px] mx-auto space-y-6">
           <p className="text-zinc-400 text-[11px] font-bold uppercase tracking-[0.2em] leading-relaxed italic opacity-80">
             Платформа прямой связи <br/> 
             без посредников и комиссий
           </p>
+
+          <button 
+            onClick={() => navigate(Screen.ABOUT)}
+            className="inline-flex items-center gap-3 bg-zinc-900/60 border border-[#D4AF37]/30 px-6 py-3 rounded-2xl animate-pulse active-press group"
+          >
+             <span className="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
+             <span className="text-[9px] font-black text-white uppercase tracking-[0.2em] italic group-hover:text-[#D4AF37] transition-colors">ЧТО ЭТО ТАКОЕ?</span>
+          </button>
           
           <div className="h-[1px] w-12 bg-[#D4AF37] mx-auto opacity-40"></div>
           

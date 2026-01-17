@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { Screen } from '../types';
 import { db } from '../database';
-import { getDebugConfig, saveManualConfig, clearManualConfig, getGeminiKey } from '../lib/supabase';
-import { GoogleGenAI } from '@google/genai';
+import { getDebugConfig, saveManualConfig, clearManualConfig } from '../lib/supabase';
+import { GoogleGenAI } from "@google/genai";
 
 interface Props {
   navigate: (screen: Screen) => void;
@@ -11,16 +11,13 @@ interface Props {
 }
 
 const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
-  const [activeTab, setActiveTab] = useState<'SYSTEM' | 'AI' | 'ENV_LOG'>('SYSTEM');
+  const [activeTab, setActiveTab] = useState<'SYSTEM' | 'ENV_LOG'>('SYSTEM');
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-  const [aiTestResult, setAiTestResult] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
   const [elevating, setElevating] = useState(false);
   
   const [mUrl, setMUrl] = useState('');
   const [mKey, setMKey] = useState('');
-  const [mGKey, setMGKey] = useState(localStorage.getItem('MUZHIK_PROFILE_GEMINI_KEY') || '');
 
   const config = getDebugConfig();
 
@@ -38,36 +35,8 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
     setElevating(false);
   };
 
-  const testAi = async () => {
-    const key = getGeminiKey();
-    if (!key) {
-      setAiTestResult("ОШИБКА: КЛЮЧ НЕ НАЙДЕН");
-      return;
-    }
-    setAiLoading(true);
-    try {
-      const ai = new GoogleGenAI({ apiKey: key });
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: 'Say "OK" if you hear me',
-      });
-      setAiTestResult(`СВЯЗЬ: ${response.text || 'ОТВЕТ ПУСТОЙ'}`);
-    } catch (e: any) {
-      console.error("AI_TEST_ERROR:", e);
-      if (e.message?.includes('leaked')) {
-        setAiTestResult("❌ КЛЮЧ ЗАБЛОКИРОВАН (УТЕЧКА).");
-      } else if (e.message?.includes('fetch') || e.message?.includes('403')) {
-        setAiTestResult("🚫 БЛОКИРОВКА РЕГИОНА. ВКЛЮЧИ VPN!");
-      } else {
-        setAiTestResult(`СБОЙ: ${e.message || 'НЕИЗВЕСТНАЯ ОШИБКА'}`);
-      }
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
   const handleSave = () => {
-    saveManualConfig(mUrl, mKey, mGKey);
+    saveManualConfig(mUrl, mKey);
   };
 
   return (
@@ -86,7 +55,6 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
 
       <div className="flex gap-1 p-1 bg-zinc-900/50 rounded-2xl mb-8 border border-white/5 w-full">
         <button onClick={() => setActiveTab('SYSTEM')} className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'SYSTEM' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>БАЗА</button>
-        <button onClick={() => setActiveTab('AI')} className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'AI' ? 'bg-[#D4AF37] text-black shadow-lg' : 'text-zinc-600'}`}>AI_КЛЮЧ</button>
         <button onClick={() => setActiveTab('ENV_LOG')} className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase italic transition-all ${activeTab === 'ENV_LOG' ? 'bg-zinc-800 text-white' : 'text-zinc-600'}`}>ENV</button>
       </div>
 
@@ -132,42 +100,6 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
           </div>
         )}
 
-        {activeTab === 'AI' && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <section className="bg-zinc-900/40 p-5 rounded-[30px] border border-white/5 shadow-2xl">
-               <h3 className="text-[10px] text-[#D4AF37] font-black uppercase tracking-widest italic mb-4 ml-1">ЛИЧНЫЙ КЛЮЧ GEMINI:</h3>
-               <div className="bg-red-900/20 border border-red-500/30 p-4 rounded-2xl mb-6">
-                  <p className="text-[10px] text-red-400 font-black uppercase italic leading-relaxed">
-                    МУЖИК, ВАЖНО: Если ты в РФ, ИИ работает ТОЛЬКО через VPN. Google блокирует прямые запросы.
-                  </p>
-               </div>
-               <p className="text-[11px] text-zinc-500 italic mb-6 leading-relaxed px-1">
-                 1. Создай ключ на <a href="https://aistudio.google.com/app/apikey" target="_blank" className="text-[#D4AF37] underline">Google AI Studio</a>. <br/>
-                 2. Вставь его ниже и нажми Сохранить.
-               </p>
-               <input 
-                 value={mGKey} 
-                 onChange={e => setMGKey(e.target.value)} 
-                 placeholder="AIza..." 
-                 className="w-full h-16 bg-black border border-white/10 rounded-2xl px-5 text-white text-[12px] font-mono outline-none focus:border-[#D4AF37]/40 mb-4" 
-               />
-               <div className="grid grid-cols-2 gap-2">
-                 <button onClick={handleSave} className="bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic text-[10px] active-press">
-                   СОХРАНИТЬ
-                 </button>
-                 <button onClick={testAi} disabled={aiLoading} className="bg-zinc-800 text-white font-black py-4 rounded-xl uppercase italic text-[10px] active-press">
-                   {aiLoading ? '...' : 'ТЕСТ_СВЯЗИ'}
-                 </button>
-               </div>
-               {aiTestResult && (
-                 <div className="mt-4 p-4 bg-black rounded-xl border border-white/10">
-                   <p className="text-[9px] font-mono text-zinc-400 break-all text-center">{aiTestResult}</p>
-                 </div>
-               )}
-            </section>
-          </div>
-        )}
-
         {activeTab === 'ENV_LOG' && (
           <section className="bg-black border border-white/5 p-5 rounded-[30px] text-left shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-300">
              <h3 className="text-[10px] text-zinc-500 font-black uppercase tracking-widest mb-6 italic ml-1">ENV_DETECTION_MATRIX:</h3>
@@ -177,8 +109,8 @@ const Diagnostic: React.FC<Props> = ({ navigate, onRefresh }) => {
                    <span className={config.sources.vite_url ? "text-green-500 font-black" : "text-red-900"}>{config.sources.vite_url ? "DETECTED" : "NULL"}</span>
                 </div>
                 <div className="flex justify-between items-center border-b border-white/5 pb-3">
-                   <span className="text-zinc-700 uppercase">Source: PROFILE_AI</span>
-                   <span className={config.sources.profile_ai_key ? "text-[#D4AF37] font-black" : "text-zinc-800"}>{config.sources.profile_ai_key ? "ACTIVE" : "NONE"}</span>
+                   <span className="text-zinc-700 uppercase">GenAI Key Status</span>
+                   <span className={process.env.API_KEY ? "text-[#D4AF37] font-black" : "text-zinc-800"}>{process.env.API_KEY ? "ACTIVE" : "NONE"}</span>
                 </div>
              </div>
           </section>

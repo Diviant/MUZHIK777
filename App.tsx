@@ -30,10 +30,11 @@ import Gallery from './components/Gallery';
 import Referral from './components/Referral';
 import VakhtaCenter from './components/VakhtaCenter';
 import MapExplorer from './components/MapExplorer';
-import CRMDashboard from './components/CRMDashboard';
+import SVOCenter from './components/SVOCenter';
 import Checklists from './components/Checklists';
 import Logistics from './components/Logistics';
 import Rest from './components/Rest';
+import About from './components/About';
 import { isSupabaseConfigured } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -68,7 +69,6 @@ const App: React.FC = () => {
       const updatedPoints = await db.claimWelcomeBonus(loadedUser.id);
       if (updatedPoints !== null) {
         setUser(prev => prev ? { ...prev, points: updatedPoints, welcomeBonusClaimed: true } : null);
-        // Можно добавить уведомление, если есть система тостов
       }
     }
   }, []);
@@ -76,7 +76,6 @@ const App: React.FC = () => {
   const initData = useCallback(async () => {
     if (isSupabaseConfigured()) {
       setIsInitializing(false);
-      
       const sessionUser = await db.getCurrentSessionUser();
       if (sessionUser) {
         setUser(sessionUser);
@@ -84,8 +83,6 @@ const App: React.FC = () => {
         setCurrentScreen(Screen.HOME);
         setDbConnected(true);
         fetchContent();
-        
-        // Проверяем и начисляем бонус
         handleWelcomeBonus(sessionUser);
       }
     } else {
@@ -109,7 +106,7 @@ const App: React.FC = () => {
       isPro: false,
       isAdmin: false,
       isVerified: false,
-      welcomeBonusClaimed: true, // Гостям не даем
+      welcomeBonusClaimed: true,
       isReliable: true,
       referralCode: '',
       dealsCount: 0,
@@ -121,7 +118,6 @@ const App: React.FC = () => {
     fetchContent();
   }, [fetchContent]);
 
-  // ... остальная часть компонента App остается без изменений ...
   const navigate = useCallback((screen: Screen) => {
     setCurrentScreen(screen);
   }, []);
@@ -162,15 +158,16 @@ const App: React.FC = () => {
       case Screen.REFERRAL: return <Referral user={user} navigate={navigate} onBonusClaim={(p) => setUser(prev => prev ? {...prev, points: prev.points + p} : null)} />;
       case Screen.VAKHTA_CENTER: return <VakhtaCenter jobs={jobs} user={user!} navigate={navigate} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.MAP_EXPLORER: return <MapExplorer navigate={navigate} user={user!} />;
-      case Screen.CRM_DASHBOARD: return <CRMDashboard user={user!} navigate={navigate} />;
+      case Screen.SVO_CENTER: return <SVOCenter user={user!} navigate={navigate} />;
       case Screen.CHECKLISTS: return <Checklists navigate={navigate} />;
       case Screen.LOGISTICS: return <Logistics navigate={navigate} user={user} />;
       case Screen.REST: return <Rest navigate={navigate} location={selectedLocation} />;
+      case Screen.ABOUT: return <About navigate={navigate} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
   }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest, fetchContent]);
 
-  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER].includes(currentScreen);
+  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER, Screen.SVO_CENTER, Screen.ABOUT].includes(currentScreen);
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#050505]">
@@ -193,7 +190,7 @@ const App: React.FC = () => {
             <NavButton active={currentScreen === Screen.CHATS} onClick={() => navigate(Screen.CHATS)} label="Чат">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
             </NavButton>
-            <NavButton active={currentScreen === Screen.PROFILE || currentScreen === Screen.CRM_DASHBOARD} onClick={() => navigate(Screen.PROFILE)} label="Я">
+            <NavButton active={currentScreen === Screen.PROFILE || currentScreen === Screen.SVO_CENTER} onClick={() => navigate(Screen.PROFILE)} label="Я">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </NavButton>
           </nav>

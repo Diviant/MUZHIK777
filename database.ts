@@ -279,9 +279,23 @@ class MuzhikDatabase {
 
   async addCargo(cargo: HitchhikingCargo): Promise<void> { await supabase.from('cargo').insert([{ author_id: cargo.authorId, title: cargo.title, route_from: cargo.routeFrom, route_to: cargo.routeTo, cargo_type: cargo.cargoType, weight: cargo.weight, price: cargo.price, departure_date: cargo.departureDate, description: cargo.description, contact: cargo.contact }]); }
   
+  // Fix: Corrected property mapping in getHitchhikers to match Hitchhiker interface (snake_case to camelCase)
   async getHitchhikers(): Promise<Hitchhiker[]> { 
     const data = await this.safeQuery(supabase.from('hitchhikers').select('*').order('created_at', { ascending: false }), []); 
-    return data.map(h => ({ id: h.id.toString(), authorId: h.author_id, name: h.name, routeFrom: h.route_from, routeTo: h.route_to, departureDate: h.departure_date, price: h.price, car_model: h.car_model, seats: h.seats, description: h.description, contact: h.contact, can_take_cargo: h.can_take_cargo })); 
+    return data.map(h => ({ 
+      id: h.id.toString(), 
+      authorId: h.author_id, 
+      name: h.name, 
+      routeFrom: h.route_from, 
+      routeTo: h.route_to, 
+      departureDate: h.departure_date, 
+      price: h.price, 
+      carModel: h.car_model, 
+      seats: h.seats, 
+      description: h.description, 
+      contact: h.contact, 
+      canTakeCargo: h.can_take_cargo 
+    })); 
   }
 
   async addHitchhiker(h: Hitchhiker): Promise<void> { await supabase.from('hitchhikers').insert([{ author_id: h.authorId, name: h.name, route_from: h.routeFrom, route_to: h.routeTo, departure_date: h.departureDate, price: h.price, car_model: h.carModel, seats: h.seats, description: h.description, contact: h.contact, can_take_cargo: h.canTakeCargo }]); }
