@@ -139,9 +139,22 @@ class MuzhikDatabase {
     await supabase.from('services').insert([{ author_id: service.authorId, category: service.category, title: service.title, description: service.description, price: service.price, author: service.author, contact: service.contact, city_id: service.cityId }]);
   }
 
+  // Fix: Changed cargo_type to cargoType in getCargo mapping to satisfy HitchhikingCargo interface
   async getCargo(): Promise<HitchhikingCargo[]> {
     const data = await this.safeQuery(supabase.from('cargo').select('*').order('created_at', { ascending: false }), []);
-    return data.map(c => ({ id: c.id.toString(), authorId: c.author_id, title: c.title, routeFrom: c.route_from, routeTo: c.route_to, cargo_type: c.cargo_type, weight: c.weight, price: c.price, departureDate: c.departure_date, description: c.description, contact: c.contact }));
+    return data.map(c => ({ 
+      id: c.id.toString(), 
+      authorId: c.author_id, 
+      title: c.title, 
+      routeFrom: c.route_from, 
+      routeTo: c.route_to, 
+      cargoType: c.cargo_type, 
+      weight: c.weight, 
+      price: c.price, 
+      departureDate: c.departure_date, 
+      description: c.description, 
+      contact: c.contact 
+    }));
   }
   // Fix: Added addCargo to satisfy AdminVacancies requirements
   async addCargo(cargo: HitchhikingCargo): Promise<void> {
