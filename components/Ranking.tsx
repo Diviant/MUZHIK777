@@ -7,16 +7,16 @@ interface Props {
   currentUser: User | null;
 }
 
-// Added missing required properties (isAdmin) to mock data
-// Fix: Added isAdmin: false to each mock user to match the User interface in types.ts
+// Added missing required properties (isAdmin, welcomeBonusClaimed) to mock data
+// Fix: Added isAdmin: false and welcomeBonusClaimed: true to each mock user to match the User interface in types.ts
 const MOCK_MASTERS: User[] = [
-  { id: '1', firstName: 'Александр', username: 'alex_svarka', rating: 5.0, points: 2450, isPro: true, isAdmin: false, isVerified: true, isReliable: true, referralCode: 'R1', dealsCount: 124, isDonor: true, level: 'Легенда', specialization: ['Сварка', 'Трубопровод'] },
-  { id: '2', firstName: 'Дмитрий', username: 'dima_electro', rating: 4.9, points: 1820, isPro: true, isAdmin: false, isVerified: true, isReliable: true, referralCode: 'R2', dealsCount: 89, isDonor: false, level: 'Опытный', specialization: ['Электрика', 'Автоматика'] },
-  { id: '3', firstName: 'Сергей', username: 'serg_master', rating: 4.9, points: 1560, isPro: false, isAdmin: false, isVerified: true, isReliable: true, referralCode: 'R3', dealsCount: 67, isDonor: false, level: 'Мужик', specialization: ['Сантехника', 'Отопление'] },
-  { id: '4', firstName: 'Николай', username: 'kolya_voda', rating: 4.8, points: 1200, isPro: true, isAdmin: false, isVerified: true, isReliable: false, referralCode: 'R4', dealsCount: 45, isDonor: false, level: 'Мастер', specialization: ['Бурение', 'Насосы'] },
-  { id: '5', firstName: 'Михаил', username: 'misha_stroy', rating: 4.7, points: 980, isPro: false, isAdmin: false, isVerified: true, isReliable: true, referralCode: 'R5', dealsCount: 32, isDonor: false, level: 'Мужик', specialization: ['Бетон', 'Кровля'] },
-  { id: '6', firstName: 'Артем', username: 'art_fix', rating: 4.7, points: 850, isPro: false, isAdmin: false, isVerified: false, isReliable: true, referralCode: 'R6', dealsCount: 15, isDonor: false, level: 'Новичок', specialization: ['Ремонт', 'Отделка'] },
-  { id: '7', firstName: 'Павел', username: 'pasha_truck', rating: 4.6, points: 720, isPro: false, isAdmin: false, isVerified: true, isReliable: false, referralCode: 'R7', dealsCount: 22, isDonor: false, level: 'Мастер', specialization: ['Грузоперевозки'] },
+  { id: '1', firstName: 'Александр', username: 'alex_svarka', rating: 5.0, points: 2450, isPro: true, isAdmin: false, isVerified: true, welcomeBonusClaimed: true, isReliable: true, referralCode: 'R1', dealsCount: 124, isDonor: true, level: 'Легенда', specialization: ['Сварка', 'Трубопровод'] },
+  { id: '2', firstName: 'Дмитрий', username: 'dima_electro', rating: 4.9, points: 1820, isPro: true, isAdmin: false, isVerified: true, welcomeBonusClaimed: true, isReliable: true, referralCode: 'R2', dealsCount: 89, isDonor: false, level: 'Опытный', specialization: ['Электрика', 'Автоматика'] },
+  { id: '3', firstName: 'Сергей', username: 'serg_master', rating: 4.9, points: 1560, isPro: false, isAdmin: false, isVerified: true, welcomeBonusClaimed: true, isReliable: true, referralCode: 'R3', dealsCount: 67, isDonor: false, level: 'Мужик', specialization: ['Сантехника', 'Отопление'] },
+  { id: '4', firstName: 'Николай', username: 'kolya_voda', rating: 4.8, points: 1200, isPro: true, isAdmin: false, isVerified: true, welcomeBonusClaimed: true, isReliable: false, referralCode: 'R4', dealsCount: 45, isDonor: false, level: 'Мастер', specialization: ['Бурение', 'Насосы'] },
+  { id: '5', firstName: 'Михаил', username: 'misha_stroy', rating: 4.7, points: 980, isPro: false, isAdmin: false, isVerified: true, welcomeBonusClaimed: true, isReliable: true, referralCode: 'R5', dealsCount: 32, isDonor: false, level: 'Мужик', specialization: ['Бетон', 'Кровля'] },
+  { id: '6', firstName: 'Артем', username: 'art_fix', rating: 4.7, points: 850, isPro: false, isAdmin: false, isVerified: false, welcomeBonusClaimed: true, isReliable: true, referralCode: 'R6', dealsCount: 15, isDonor: false, level: 'Новичок', specialization: ['Ремонт', 'Отделка'] },
+  { id: '7', firstName: 'Павел', username: 'pasha_truck', rating: 4.6, points: 720, isPro: false, isAdmin: false, isVerified: true, welcomeBonusClaimed: true, isReliable: false, referralCode: 'R7', dealsCount: 22, isDonor: false, level: 'Мастер', specialization: ['Грузоперевозки'] },
 ];
 
 const Ranking: React.FC<Props> = ({ navigate, currentUser }) => {

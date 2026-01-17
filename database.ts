@@ -45,6 +45,37 @@ class MuzhikDatabase {
     }
   }
 
+  async claimWelcomeBonus(userId: string): Promise<number | null> {
+    if (!this.isValidUuid(userId)) return null;
+    try {
+      // Проверяем статус в базе
+      const { data: profile, error: getError } = await supabase
+        .from('profiles')
+        .select('welcome_bonus_claimed, points')
+        .eq('id', userId)
+        .single();
+      
+      if (getError || !profile) return null;
+      if (profile.welcome_bonus_claimed) return profile.points;
+
+      const newPoints = (profile.points || 0) + 1300;
+      
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ 
+          points: newPoints, 
+          welcome_bonus_claimed: true 
+        })
+        .eq('id', userId);
+
+      if (updateError) throw updateError;
+      return newPoints;
+    } catch (e) {
+      console.error("Welcome bonus error", e);
+      return null;
+    }
+  }
+
   async promoteToAdmin(): Promise<{success: boolean, message: string}> {
     if (!isSupabaseConfigured()) return { success: false, message: 'БАЗА НЕ ПОДКЛЮЧЕНА' };
     try {
@@ -87,6 +118,7 @@ class MuzhikDatabase {
         is_pro: user.isPro,
         is_admin: user.isAdmin,
         is_verified: user.isVerified,
+        welcome_bonus_claimed: user.welcomeBonusClaimed,
         is_reliable: user.isReliable,
         is_banned: user.isBanned,
         referral_code: user.referralCode || `M${user.id.substring(0, 8)}`,
@@ -119,6 +151,7 @@ class MuzhikDatabase {
       isPro: data.is_pro || false,
       isAdmin: data.is_admin || false,
       isVerified: data.is_verified || false,
+      welcomeBonusClaimed: data.welcome_bonus_claimed || false,
       isReliable: data.is_reliable ?? true,
       isBanned: data.is_banned || false,
       referralCode: data.referral_code || `M${data.id.substring(0, 8)}`,
@@ -132,6 +165,7 @@ class MuzhikDatabase {
     };
   }
 
+  // ... остальные методы без изменений ...
   async getNotes(userId: string): Promise<Note[]> { 
     if (!this.isValidUuid(userId)) return [];
     const data = await this.safeQuery(
@@ -201,7 +235,6 @@ class MuzhikDatabase {
   
   async getMachinery(): Promise<HeavyMachinery[]> { 
     const data = await this.safeQuery(supabase.from('machinery').select('*').order('created_at', { ascending: false }), []); 
-    // Fix: Fixed property name mismatch in mapping (includes_fuel -> includesFuel)
     return data.map(m => ({ id: m.id.toString(), authorId: m.author_id, type: m.type, model: m.model, rate: m.rate, cityId: m.city_id, description: m.description, contact: m.contact, includesOperator: m.includes_operator, includesFuel: m.includes_fuel, specs: m.specs })); 
   }
 
@@ -223,7 +256,7 @@ class MuzhikDatabase {
   
   async getHitchhikers(): Promise<Hitchhiker[]> { 
     const data = await this.safeQuery(supabase.from('hitchhikers').select('*').order('created_at', { ascending: false }), []); 
-    return data.map(h => ({ id: h.id.toString(), authorId: h.author_id, name: h.name, routeFrom: h.route_from, routeTo: h.route_to, departureDate: h.departure_date, price: h.price, carModel: h.car_model, seats: h.seats, description: h.description, contact: h.contact, canTakeCargo: h.can_take_cargo })); 
+    return data.map(h => ({ id: h.id.toString(), authorId: h.author_id, name: h.name, routeFrom: h.route_from, routeTo: h.route_to, departureDate: h.departure_date, price: h.price, car_model: h.car_model, seats: h.seats, description: h.description, contact: h.contact, can_take_cargo: h.can_take_cargo })); 
   }
 
   async addHitchhiker(h: Hitchhiker): Promise<void> { await supabase.from('hitchhikers').insert([{ author_id: h.authorId, name: h.name, route_from: h.routeFrom, route_to: h.routeTo, departure_date: h.departureDate, price: h.price, car_model: h.carModel, seats: h.seats, description: h.description, contact: h.contact, can_take_cargo: h.canTakeCargo }]); }

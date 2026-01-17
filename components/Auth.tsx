@@ -66,6 +66,7 @@ const Auth: React.FC<Props> = ({ onSuccess, onGuest, navigate }) => {
             }
           }
 
+          // Fix: Added missing welcomeBonusClaimed property to new user registration
           await db.saveUser({
             id: signUpData.user.id,
             username: tgUser.username || `user_${tgUser.id}`,
@@ -76,6 +77,7 @@ const Auth: React.FC<Props> = ({ onSuccess, onGuest, navigate }) => {
             isPro: false,
             isAdmin: false,
             isVerified: false,
+            welcomeBonusClaimed: false,
             isReliable: true,
             referralCode: `M${tgUser.id}`,
             referredById: referredById,

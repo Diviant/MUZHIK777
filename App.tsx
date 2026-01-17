@@ -54,7 +54,6 @@ const App: React.FC = () => {
   const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
 
   const fetchContent = useCallback(() => {
-    // Асинхронная фоновая загрузка - не блокирует UI
     db.getJobs().then(setJobs).catch(() => {});
     db.getMarketItems().then(setMarketItems).catch(() => {});
     db.getCargo().then(setCargo).catch(() => {});
@@ -64,12 +63,20 @@ const App: React.FC = () => {
     db.getMachinery().then(setMachinery).catch(() => {});
   }, []);
 
+  const handleWelcomeBonus = useCallback(async (loadedUser: User) => {
+    if (!loadedUser.welcomeBonusClaimed && loadedUser.id !== 'guest') {
+      const updatedPoints = await db.claimWelcomeBonus(loadedUser.id);
+      if (updatedPoints !== null) {
+        setUser(prev => prev ? { ...prev, points: updatedPoints, welcomeBonusClaimed: true } : null);
+        // Можно добавить уведомление, если есть система тостов
+      }
+    }
+  }, []);
+
   const initData = useCallback(async () => {
-    // 1. Показываем UI сразу, если конфиг базы есть
     if (isSupabaseConfigured()) {
       setIsInitializing(false);
       
-      // 2. Проверяем сессию в фоне
       const sessionUser = await db.getCurrentSessionUser();
       if (sessionUser) {
         setUser(sessionUser);
@@ -77,13 +84,15 @@ const App: React.FC = () => {
         setCurrentScreen(Screen.HOME);
         setDbConnected(true);
         fetchContent();
+        
+        // Проверяем и начисляем бонус
+        handleWelcomeBonus(sessionUser);
       }
     } else {
-      // Если базы нет совсем - работаем в оффлайн-режиме (демо)
       setIsInitializing(false);
       setDbConnected(false);
     }
-  }, [fetchContent]);
+  }, [fetchContent, handleWelcomeBonus]);
 
   useEffect(() => {
     initData();
@@ -100,6 +109,7 @@ const App: React.FC = () => {
       isPro: false,
       isAdmin: false,
       isVerified: false,
+      welcomeBonusClaimed: true, // Гостям не даем
       isReliable: true,
       referralCode: '',
       dealsCount: 0,
@@ -111,6 +121,7 @@ const App: React.FC = () => {
     fetchContent();
   }, [fetchContent]);
 
+  // ... остальная часть компонента App остается без изменений ...
   const navigate = useCallback((screen: Screen) => {
     setCurrentScreen(screen);
   }, []);

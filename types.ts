@@ -62,6 +62,7 @@ export interface User {
   isPro: boolean;
   isAdmin: boolean;
   isVerified: boolean;
+  welcomeBonusClaimed: boolean; // Флаг получения 1300 баллов
   verificationType?: 'PASSPORT' | 'IP' | 'NONE';
   badges?: string[];
   isReliable: boolean;
@@ -73,7 +74,7 @@ export interface User {
   level: string;
   specialization: string[];
   portfolioImages?: string[]; 
-  trustedContacts?: string[]; // Номера телефонов доверенных лиц
+  trustedContacts?: string[]; 
 }
 
 export interface Job { 
