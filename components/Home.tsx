@@ -183,7 +183,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
             </div>
             
             <div className="absolute bottom-0 right-0 w-12 h-12 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-               <span className="text-[10px] text-[#D4AF37] mono">>></span>
+               <span className="text-[10px] text-[#D4AF37] mono">&gt;&gt;</span>
             </div>
           </button>
         ))}
@@ -250,6 +250,7 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
                    { icon: '🛡️', label: 'ЗАЛ СЛАВЫ', desc: 'РЕЙТИНГ ЛУЧШИХ МАСТЕРОВ', screen: Screen.RANKING, color: 'rgba(168, 85, 247, 0.08)' },
                    { icon: '⚓', label: 'ПРИГЛАСИТЬ СВОИХ', desc: 'БОНУСЫ ЗА КАЖДОГО ДРУГА', screen: Screen.REFERRAL, color: 'rgba(236, 72, 153, 0.08)' },
                    { icon: '🤖', label: 'СОВЕТ БУГРА (PRO)', desc: 'ПОМОЩЬ ИИ В СТРОЙКЕ И СМЕТАХ', screen: Screen.BUGOR_CHAT, proRequired: true, color: 'rgba(249, 115, 22, 0.1)' },
+                   { icon: '⚖️', label: 'ЮРИДИЧЕСКИЙ ЩИТ', desc: 'ПРАВОВАЯ ЗАЩИТА (PRO)', screen: Screen.LEGAL_CENTER, proRequired: true, color: 'rgba(59, 130, 246, 0.1)' },
                    { icon: '⚙️', label: 'ПУЛЬТ УПРАВЛЕНИЯ', desc: 'ДИАГНОСТИКА И СТАТУС СЕТИ', screen: Screen.DIAGNOSTIC, color: 'rgba(113, 113, 122, 0.08)' },
                    { icon: '🔐', label: 'АДМИН-ЦЕНТР', desc: 'МОДЕРАЦИЯ И УПРАВЛЕНИЕ БАЗОЙ', screen: Screen.ADMIN_LOGIN, color: 'rgba(220, 38, 38, 0.08)' },
                  ].map((item, idx) => (
