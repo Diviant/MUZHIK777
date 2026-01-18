@@ -80,13 +80,13 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
 
   const modules = [
     { icon: '📡', title: 'Эфир', desc: 'ОБЩИЙ ЧАТ', screen: Screen.FEED },
+    { icon: '🚜', title: 'Агроцех', desc: 'КФХ / ПОЛЕ', screen: Screen.AGRO_CENTER },
     { icon: '🎫', title: 'Логистика', desc: 'ПОИСК БИЛЕТОВ', screen: Screen.LOGISTICS },
     { icon: '🪖', title: 'Служба', desc: 'СВО / СОВЕТЫ', screen: Screen.SVO_CENTER },
     { icon: '🚗', title: 'Попутчики', desc: 'ЕХАТЬ ВМЕСТЕ', screen: Screen.HITCHHIKERS },
     { icon: '📏', title: 'Инструменты', desc: 'КАЛЬКУЛЯТОРЫ', screen: Screen.CALCULATORS },
     { icon: '🧖‍♂️', title: 'Отдых', desc: 'БАНЯ И ПИВО', screen: Screen.REST },
-    { icon: '🚜', title: 'Техника', desc: 'АРЕНДА', screen: Screen.HEAVY_MACHINERY },
-    { icon: '🔍', title: 'Снабженец', desc: 'МАТЕРИАЛЫ', screen: Screen.MATERIALS_SEARCH },
+    { icon: '⚙️', title: 'Техника', desc: 'АРЕНДА', screen: Screen.HEAVY_MACHINERY },
   ];
 
   return (
@@ -216,5 +216,4 @@ const Home: React.FC<Props> = ({ navigate, user, location, dbConnected }) => {
   );
 };
 
-// Fix: Missing default export was causing import error in App.tsx
 export default Home;

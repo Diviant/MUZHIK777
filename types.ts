@@ -37,7 +37,8 @@ export enum Screen {
   LOGISTICS = 'LOGISTICS',
   HITCHHIKERS = 'HITCHHIKERS',
   REST = 'REST',
-  ABOUT = 'ABOUT'
+  ABOUT = 'ABOUT',
+  AGRO_CENTER = 'AGRO_CENTER'
 }
 
 export type SOSScenario = 'ACCIDENT' | 'INJURY' | 'STUCK' | 'THREAT' | 'OTHER';

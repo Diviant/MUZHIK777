@@ -35,6 +35,7 @@ import Checklists from './components/Checklists';
 import Logistics from './components/Logistics';
 import Rest from './components/Rest';
 import About from './components/About';
+import AgroCenter from './components/AgroCenter';
 import { isSupabaseConfigured } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -163,11 +164,12 @@ const App: React.FC = () => {
       case Screen.LOGISTICS: return <Logistics navigate={navigate} user={user} />;
       case Screen.REST: return <Rest navigate={navigate} location={selectedLocation} />;
       case Screen.ABOUT: return <About navigate={navigate} />;
+      case Screen.AGRO_CENTER: return <AgroCenter navigate={navigate} user={user} location={selectedLocation} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
   }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest, fetchContent]);
 
-  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER, Screen.SVO_CENTER, Screen.ABOUT].includes(currentScreen);
+  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER, Screen.SVO_CENTER, Screen.ABOUT, Screen.AGRO_CENTER].includes(currentScreen);
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#050505]">

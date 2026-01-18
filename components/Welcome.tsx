@@ -14,9 +14,9 @@ const Welcome: React.FC<Props> = ({ onStart, onGuest, navigate }) => {
       {/* Background Ambient Lighting */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-[#D4AF37] opacity-[0.03] blur-[140px] rounded-full pointer-events-none"></div>
       
-      {/* Header Info */}
-      <div className="mt-12 mb-8 stagger-item">
-        <div className="inline-block border border-white/5 text-zinc-600 text-[8px] font-black px-5 py-2 rounded-full uppercase mb-12 tracking-[0.6em] bg-white/[0.02] mono">
+      {/* Header Info - LIFTED UP */}
+      <div className="mt-1 mb-8 stagger-item">
+        <div className="inline-block border border-white/5 text-zinc-600 text-[8px] font-black px-5 py-2 rounded-full uppercase mb-10 tracking-[0.6em] bg-white/[0.02] mono">
           INDUSTRY_CORE_v4.5
         </div>
         
