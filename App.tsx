@@ -36,6 +36,8 @@ import Logistics from './components/Logistics';
 import Rest from './components/Rest';
 import About from './components/About';
 import AgroCenter from './components/AgroCenter';
+import SOSRules from './components/SOSRules';
+import LegalCenter from './components/LegalCenter';
 import { isSupabaseConfigured } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -76,7 +78,6 @@ const App: React.FC = () => {
 
   const initData = useCallback(async () => {
     if (isSupabaseConfigured()) {
-      setIsInitializing(false);
       const sessionUser = await db.getCurrentSessionUser();
       if (sessionUser) {
         setUser(sessionUser);
@@ -85,11 +86,13 @@ const App: React.FC = () => {
         setDbConnected(true);
         fetchContent();
         handleWelcomeBonus(sessionUser);
+      } else {
+        setDbConnected(true);
       }
     } else {
-      setIsInitializing(false);
       setDbConnected(false);
     }
+    setIsInitializing(false);
   }, [fetchContent, handleWelcomeBonus]);
 
   useEffect(() => {
@@ -102,7 +105,7 @@ const App: React.FC = () => {
       id: 'guest',
       username: 'guest_user',
       firstName: 'Гость',
-      rating: 0,
+      rating: 5,
       points: 0,
       isPro: false,
       isAdmin: false,
@@ -165,11 +168,13 @@ const App: React.FC = () => {
       case Screen.REST: return <Rest navigate={navigate} location={selectedLocation} />;
       case Screen.ABOUT: return <About navigate={navigate} />;
       case Screen.AGRO_CENTER: return <AgroCenter navigate={navigate} user={user} location={selectedLocation} />;
+      case Screen.SOS_RULES: return <SOSRules navigate={navigate} />;
+      case Screen.LEGAL_CENTER: return <LegalCenter user={user!} navigate={navigate} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
   }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest, fetchContent]);
 
-  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER, Screen.SVO_CENTER, Screen.ABOUT, Screen.AGRO_CENTER].includes(currentScreen);
+  const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER, Screen.SVO_CENTER, Screen.ABOUT, Screen.AGRO_CENTER, Screen.SOS_RULES, Screen.LEGAL_CENTER].includes(currentScreen);
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col bg-[#050505]">

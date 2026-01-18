@@ -165,7 +165,6 @@ class MuzhikDatabase {
   }
 
   async getActiveSOSSignals(): Promise<SOSSignal[]> {
-    // Получаем сигналы за последние 24 часа, которые не решены
     const last24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { data, error } = await supabase
       .from('sos_signals')
@@ -183,7 +182,9 @@ class MuzhikDatabase {
       lat: s.lat,
       lng: s.lng,
       timestamp: new Date(s.created_at).getTime(),
-      status: s.status
+      status: s.status,
+      message: s.message,
+      voiceUrl: s.voice_url
     }));
   }
 
@@ -242,7 +243,23 @@ class MuzhikDatabase {
   }
 
   async saveVakhtaEntry(userId: string, entry: VakhtaEntry): Promise<void> { if (!this.isValidUuid(userId)) return; await supabase.from('vakhta_entries').insert([{ user_id: userId, start_date: entry.startDate, end_date: entry.endDate, expected_salary: entry.expectedSalary, advances: entry.advances, travel_expenses: entry.travelExpenses, food_expenses: entry.foodExpenses, sent_home: entry.sentHome }]); }
-  async sendSOS(userId: string, userName: string, signal: Omit<SOSSignal, 'id' | 'userId' | 'userName' | 'status'>): Promise<void> { if (!this.isValidUuid(userId)) return; await supabase.from('sos_signals').insert([{ user_id: userId, user_name: userName, scenario: signal.scenario, lat: signal.lat, lng: signal.lng, status: 'SENT' }]); await this.addFeedPost(userId, `[SOS] СРОЧНО! Помощь: ${signal.scenario}. Координаты: ${signal.lat}, ${signal.lng}`); }
+  
+  async sendSOS(userId: string, userName: string, signal: Omit<SOSSignal, 'id' | 'userId' | 'userName' | 'status'>): Promise<void> { 
+    if (!this.isValidUuid(userId)) return; 
+    await supabase.from('sos_signals').insert([{ 
+      user_id: userId, 
+      user_name: userName, 
+      scenario: signal.scenario, 
+      lat: signal.lat, 
+      lng: signal.lng, 
+      status: 'SENT',
+      message: signal.message,
+      voice_url: signal.voiceUrl
+    }]); 
+    const detail = signal.message ? ` Детали: ${signal.message}` : '';
+    await this.addFeedPost(userId, `[SOS] СРОЧНО! Помощь: ${signal.scenario}.${detail} Координаты: ${signal.lat}, ${signal.lng}`); 
+  }
+
   async requestVerification(userId: string, fullName: string, specialization: string): Promise<void> { if (!this.isValidUuid(userId)) return; await supabase.from('verification_requests').insert([{ user_id: userId, full_name: fullName, specialization }]); }
   async addPortfolioImage(userId: string, imageUrl: string): Promise<void> { if (!this.isValidUuid(userId)) return; const { data: user } = await supabase.from('profiles').select('portfolio_images').eq('id', userId).single(); const currentImages = user?.portfolio_images || []; await supabase.from('profiles').update({ portfolio_images: [...currentImages, imageUrl] }).eq('id', userId); }
   async updateUserPoints(userId: string, points: number): Promise<void> { if (!this.isValidUuid(userId)) return; await supabase.from('profiles').update({ points }).eq('id', userId); }
@@ -279,7 +296,6 @@ class MuzhikDatabase {
 
   async addCargo(cargo: HitchhikingCargo): Promise<void> { await supabase.from('cargo').insert([{ author_id: cargo.authorId, title: cargo.title, route_from: cargo.routeFrom, route_to: cargo.routeTo, cargo_type: cargo.cargoType, weight: cargo.weight, price: cargo.price, departure_date: cargo.departureDate, description: cargo.description, contact: cargo.contact }]); }
   
-  // Fix: Corrected property mapping in getHitchhikers to match Hitchhiker interface (snake_case to camelCase)
   async getHitchhikers(): Promise<Hitchhiker[]> { 
     const data = await this.safeQuery(supabase.from('hitchhikers').select('*').order('created_at', { ascending: false }), []); 
     return data.map(h => ({ 

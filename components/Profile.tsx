@@ -39,89 +39,96 @@ const Profile: React.FC<Props> = ({ user, navigate, onUpdate, dbConnected, isGue
   };
 
   const menuItems = [
-    { icon: '🖼️', title: 'Портфолио Объектов', desc: 'Мои работы и фото', screen: Screen.GALLERY, highlight: true },
-    { icon: '🆘', title: 'SOS Настройки', desc: 'Экстренная связь', action: () => setShowSOSSettings(true), alert: true },
-    { icon: '✅', title: 'Чек-листы', desc: 'Ничего не забудь', screen: Screen.CHECKLISTS },
-    { icon: '📏', title: 'Инструментарий', desc: 'Калькуляторы расчетов', screen: Screen.CALCULATORS },
-    { icon: '📊', title: 'Журнал Вахты', desc: 'Смета и доходы', screen: Screen.VAKHTA_JOURNAL },
-    { icon: '🔍', title: 'Поиск Материалов', desc: 'Где купить выгодно', screen: Screen.MATERIALS_SEARCH },
-    { icon: '📝', title: 'Мои Заметки', desc: 'Черновики и расчеты', screen: Screen.NOTES },
-    { icon: '🤝', title: 'Пригласить друзей', desc: 'Бонусы за своих', screen: Screen.REFERRAL },
+    { icon: '🖼️', title: 'ПОРТФОЛИО ОБЪЕКТОВ', desc: 'МОИ РАБОТЫ И ФОТО', screen: Screen.GALLERY, color: 'linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(0,0,0,0) 100%)' },
+    { icon: '🆘', title: 'SOS НАСТРОЙКИ', desc: 'ЭКСТРЕННАЯ СВЯЗЬ', action: () => setShowSOSSettings(true), alert: true, color: 'linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(0,0,0,0) 100%)' },
+    { icon: '⚖️', title: 'ЮРИДИЧЕСКИЙ ЩИТ', desc: 'ПРАВОВАЯ ЗАЩИТА', screen: Screen.LEGAL_CENTER, color: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(220, 38, 38, 0.1) 100%)' },
+    { icon: '✅', title: 'ЧЕК-ЛИСТЫ', desc: 'НИЧЕГО НЕ ЗАБУДЬ', screen: Screen.CHECKLISTS, color: 'linear-gradient(135deg, rgba(34, 197, 94, 0.15) 0%, rgba(0,0,0,0) 100%)' },
+    { icon: '📊', title: 'ЖУРНАЛ ВАХТЫ', desc: 'СМЕТА И ДОХОДЫ', screen: Screen.VAKHTA_JOURNAL, color: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(0,0,0,0) 100%)' },
+    { icon: '📝', title: 'МОИ ЗАМЕТКИ', desc: 'ЧЕРНОВИКИ И РАСЧЕТЫ', screen: Screen.NOTES, color: 'linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, rgba(0,0,0,0) 100%)' },
+    { icon: '🤝', title: 'ПРИГЛАСИТЬ СВОИХ', desc: 'БОНУСЫ ЗА ДРУЗЕЙ', screen: Screen.REFERRAL, color: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15) 0%, rgba(0,0,0,0) 100%)' },
   ];
 
   return (
     <div className="flex-1 flex flex-col p-4 pb-32 overflow-y-auto no-scrollbar bg-[#050505] relative z-10">
-      <header className="flex items-center justify-between py-4 mb-2 sticky top-0 bg-[#050505]/95 backdrop-blur-md z-30 px-2 border-b border-white/5">
+      <header className="flex items-center justify-between py-4 mb-2 sticky top-0 bg-[#050505]/95 backdrop-blur-md z-40 px-2 border-b border-white/5">
         <div className="flex flex-col items-start">
-           <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none">ПРОФИЛЬ</h2>
+           <h2 className="text-2xl font-black italic text-white uppercase tracking-tighter leading-none pr-2">ПРОФИЛЬ</h2>
            <div className="flex items-center gap-2 mt-1">
-             <div className="w-1 h-1 bg-[#D4AF37] rounded-full"></div>
-             <span className="text-[6px] text-zinc-600 font-black uppercase tracking-[0.4em] mono">CORE_SYSTEM_v4.5.2</span>
+             <div className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-pulse"></div>
+             <span className="text-[6px] text-zinc-500 font-black uppercase tracking-[0.4em] mono italic">CORE_SYSTEM_v4.5.2</span>
            </div>
         </div>
         <button onClick={() => navigate(Screen.HOME)} className="w-10 h-10 bg-zinc-900 border border-white/10 rounded-xl flex items-center justify-center text-[#D4AF37] active-press shadow-xl">✕</button>
       </header>
 
-      {/* USER CARD */}
+      {/* USER ID CARD - REFINED (NO DARK PLATE) */}
       <div 
-        className="rounded-[35px] p-6 mb-5 border border-white/10 shadow-2xl relative"
+        className="rounded-[50px] p-10 mb-8 border border-white/5 shadow-[0_30px_60px_rgba(0,0,0,0.8)] relative overflow-hidden"
         style={{ 
-          background: 'radial-gradient(circle at 50% -20%, rgba(212, 175, 55, 0.12) 0%, #121212 60%)' 
+          background: 'radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.15) 0%, #080808 100%)' 
         }}
       >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[1px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent"></div>
+        <div className="absolute top-0 right-0 w-full h-full blueprint opacity-10 pointer-events-none"></div>
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#D4AF37]/5 blur-[120px] rounded-full"></div>
         
         <div className="flex flex-col items-center text-center relative z-10">
-          <div className="relative mb-4">
-            <div className="w-20 h-20 bg-zinc-800 rounded-[25px] p-[2px] shadow-2xl border border-white/10">
-              <div className="w-full h-full rounded-[23px] overflow-hidden bg-black flex items-center justify-center">
+          {/* AVATAR WITHOUT PLATE */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-[#D4AF37] opacity-20 blur-2xl rounded-full scale-110"></div>
+            <div className="w-32 h-32 rounded-[45px] overflow-hidden border-2 border-[#D4AF37]/30 shadow-2xl relative bg-black/40 backdrop-blur-sm group active-press transition-transform">
                 {user.photoUrl ? (
-                  <img src={user.photoUrl} className="w-full h-full object-cover" />
+                  <img src={user.photoUrl} className="w-full h-full object-cover" alt="User" />
                 ) : (
-                  <span className="text-3xl opacity-20">👤</span>
+                  <div className="w-full h-full flex items-center justify-center">
+                    <span className="text-6xl drop-shadow-[0_0_15px_rgba(212,175,55,0.6)]">👤</span>
+                  </div>
                 )}
-              </div>
             </div>
             {user.isVerified && (
-              <div className="absolute -bottom-1 -right-1 bg-[#D4AF37] w-6 h-6 rounded-lg flex items-center justify-center text-black font-black border-[3px] border-[#121212] shadow-lg text-[8px]">
+              <div className="absolute -bottom-1 -right-1 bg-green-500 w-9 h-9 rounded-2xl flex items-center justify-center text-black font-black border-4 border-black shadow-xl text-sm z-20 animate-in zoom-in duration-500">
                 ✓
               </div>
             )}
           </div>
 
-          <div className="flex flex-col items-center mb-4">
-            <h3 className="text-xl font-black text-white uppercase italic leading-none mb-1 tracking-tighter">
+          <div className="flex flex-col items-center mb-8">
+            <h3 className="text-3xl font-black text-white uppercase italic leading-none mb-3 tracking-tighter gold-text drop-shadow-2xl">
               {user.firstName}
             </h3>
-            <span className="text-zinc-600 text-[8px] font-black uppercase tracking-widest mono italic leading-none">
-              @{user.username}
-            </span>
+            <div className="px-5 py-2 bg-black/60 rounded-full border border-white/5 backdrop-blur-md">
+              <span className="text-zinc-500 text-[9px] font-black uppercase tracking-widest mono italic leading-none">
+                NODE_ADDRESS: @{user.username}
+              </span>
+            </div>
           </div>
           
-          <div className="flex gap-2 mb-6">
-            <span className="bg-[#D4AF37]/10 text-[#D4AF37] text-[7px] font-black px-3 py-1 rounded-md italic uppercase border border-[#D4AF37]/20">
-              {user.level}
+          <div className="flex gap-3 mb-10">
+            <span className="bg-[#D4AF37]/10 text-[#D4AF37] text-[9px] font-black px-6 py-2 rounded-2xl italic uppercase border border-[#D4AF37]/20 tracking-widest shadow-inner">
+              RANK_{user.level || 'НОВИЧОК'}
             </span>
             {user.isPro && (
-              <span className="bg-white text-black text-[7px] font-black px-3 py-1 rounded-md italic uppercase">
-                PRO
+              <span className="bg-white text-black text-[9px] font-black px-6 py-2 rounded-2xl italic uppercase tracking-widest shadow-xl">
+                PRO_ACCESS
               </span>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3 w-full">
-            <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-              <span className="text-[6px] text-zinc-700 font-black uppercase block mb-1 tracking-widest">БАЛЛЫ</span>
-              <div className="flex items-baseline justify-center gap-1">
-                <span className="text-lg font-black text-[#D4AF37] italic">{user.points}</span>
-                <span className="text-[7px] text-zinc-600 font-black italic">D</span>
+          {/* STATS WITH GLASS EFFECT */}
+          <div className="grid grid-cols-2 gap-4 w-full">
+            <div className="bg-white/[0.03] backdrop-blur-md p-6 rounded-[35px] border border-white/5 shadow-2xl relative group active-press overflow-hidden transition-all">
+              <div className="absolute inset-0 bg-[#D4AF37]/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className="text-[7px] text-zinc-600 font-black uppercase block mb-2 tracking-[0.3em] italic">ВЛИЯНИЕ</span>
+              <div className="flex items-baseline justify-center gap-1.5">
+                <span className="text-3xl font-black text-white italic leading-none">{user.points}</span>
+                <span className="text-[10px] text-[#D4AF37] font-black italic mono opacity-60">D</span>
               </div>
             </div>
-            <div className="bg-black/40 p-3 rounded-xl border border-white/5">
-              <span className="text-[6px] text-zinc-700 font-black uppercase block mb-1 tracking-widest">РЕЙТИНГ</span>
-              <div className="flex items-baseline justify-center gap-1">
-                <span className="text-lg font-black text-white italic">{user.rating}</span>
-                <span className="text-[7px] text-zinc-600 font-black italic">★</span>
+            <div className="bg-white/[0.03] backdrop-blur-md p-6 rounded-[35px] border border-white/5 shadow-2xl relative group active-press overflow-hidden transition-all">
+              <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className="text-[7px] text-zinc-600 font-black uppercase block mb-2 tracking-[0.3em] italic">ДОВЕРИЕ</span>
+              <div className="flex items-baseline justify-center gap-1.5">
+                <span className="text-3xl font-black text-white italic leading-none">{user.rating}</span>
+                <span className="text-[12px] text-[#D4AF37] font-black italic opacity-60">★</span>
               </div>
             </div>
           </div>
@@ -131,98 +138,119 @@ const Profile: React.FC<Props> = ({ user, navigate, onUpdate, dbConnected, isGue
       {!user.isVerified && (
         <button 
           onClick={() => setIsVerifying(true)}
-          className="w-full bg-zinc-900 border border-white/5 text-zinc-500 text-[8px] font-black py-3 rounded-xl uppercase tracking-[0.4em] active:bg-zinc-800 transition-all italic mb-5"
+          className="w-full relative h-16 rounded-[30px] border border-[#D4AF37]/20 overflow-hidden active-press transition-all mb-8 shadow-2xl"
+          style={{ background: 'linear-gradient(90deg, #0a0a0a 0%, #151505 50%, #0a0a0a 100%)' }}
         >
-          VERIFY_SYSTEM_ID
+          <div className="absolute top-0 left-[-100%] w-full h-[1.5px] bg-gradient-to-r from-transparent via-[#D4AF37]/40 to-transparent animate-shimmer"></div>
+          <span className="text-[#D4AF37] text-[10px] font-black uppercase tracking-[0.5em] italic relative z-10">INITIALIZE_VERIFICATION</span>
         </button>
       )}
 
-      {/* MENU SECTION */}
-      <div className="space-y-2.5 mb-10">
+      {/* MENU SECTION - HIGH END GRADIENTS */}
+      <div className="space-y-4 mb-10">
+        <div className="flex items-center gap-4 px-2 mb-6 opacity-30">
+           <div className="h-[1px] bg-white/10 flex-1"></div>
+           <span className="text-[8px] text-white font-black uppercase tracking-[0.5em] italic">SYSTEM_MODULES</span>
+           <div className="h-[1px] bg-white/10 flex-1"></div>
+        </div>
+
         {menuItems.map((item, idx) => (
           <button 
             key={idx}
             onClick={item.action || (() => navigate(item.screen as Screen))}
-            className={`w-full p-4 rounded-[25px] flex items-center justify-between border active-press transition-all group shadow-lg ${item.alert ? 'border-red-600/30 bg-red-900/10' : item.highlight ? 'bg-[#D4AF37]/5 border-[#D4AF37]/20' : 'bg-zinc-900/40 border-white/5'}`}
+            className="w-full p-6 rounded-[40px] border border-white/5 flex items-center gap-6 active-press transition-all group shadow-2xl text-left overflow-hidden relative"
+            style={{ background: item.color }}
           >
-            <div className="flex items-center gap-3">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg border ${item.alert ? 'bg-red-600 text-white' : item.highlight ? 'bg-[#D4AF37] text-black border-none' : 'bg-black/40 border-white/5'}`}>
+            {/* Background noise/pattern for texture */}
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] mix-blend-overlay"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-black/40"></div>
+
+            <div className="w-16 h-16 bg-zinc-900 border border-white/10 rounded-[28px] flex items-center justify-center flex-none group-hover:scale-110 transition-transform shadow-2xl relative overflow-hidden z-10">
+              <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span className={`text-3xl drop-shadow-2xl ${item.alert ? 'animate-pulse' : 'grayscale group-hover:grayscale-0 transition-all'}`}>
                 {item.icon}
-              </div>
-              <div className="flex flex-col text-left">
-                <span className={`text-[11px] font-black uppercase italic tracking-tight leading-none mb-1 ${item.alert ? 'text-red-500' : item.highlight ? 'gold-text' : 'text-white'}`}>
-                  {item.title}
-                </span>
-                <span className="text-[6px] text-zinc-700 font-black uppercase tracking-widest mono italic leading-none">{item.desc}</span>
-              </div>
+              </span>
             </div>
-            <div className={`text-[10px] transition-all ${item.alert ? 'text-red-900' : item.highlight ? 'text-[#D4AF37]' : 'text-zinc-800'}`}>→</div>
+            
+            <div className="flex flex-col min-w-0 flex-1 relative z-10">
+              <span className={`text-[15px] font-black uppercase italic tracking-tighter leading-none mb-2 group-hover:text-[#D4AF37] transition-colors ${item.alert ? 'text-red-500' : 'text-white'}`}>
+                {item.title}
+              </span>
+              <p className="text-[8px] text-zinc-500 font-black uppercase tracking-widest italic leading-none truncate opacity-80">
+                {item.desc}
+              </p>
+            </div>
+            
+            <div className={`flex-none transition-all group-hover:translate-x-1 relative z-10 ${item.alert ? 'text-red-900' : 'text-zinc-800 group-hover:text-[#D4AF37]'}`}>
+               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
           </button>
         ))}
       </div>
 
-      <button onClick={handleLogout} className="mt-auto text-zinc-800 font-black py-5 rounded-xl uppercase text-[8px] tracking-[0.5em] border border-white/5 active:text-red-900 transition-all italic mb-6">
-        KILL_SESSION_SIGNAL
+      <button 
+        onClick={handleLogout} 
+        className="mt-auto group relative h-16 w-full rounded-[30px] border border-red-900/10 overflow-hidden active-press transition-all text-center mb-10"
+        style={{ background: 'linear-gradient(90deg, #050505 0%, #1a0505 50%, #050505 100%)' }}
+      >
+        <span className="text-zinc-800 group-hover:text-red-700 transition-colors font-black uppercase text-[10px] tracking-[0.5em] italic relative z-10">
+          DISCONNECT_SESSION_LINK
+        </span>
       </button>
 
-      {/* SOS SETTINGS MODAL */}
+      {/* MODALS RENDERED WITH BLUR BACKDROP */}
       {showSOSSettings && (
-        <div className="fixed inset-0 z-[200] bg-[#050505]/98 backdrop-blur-xl flex items-center justify-center p-8 animate-in fade-in duration-300">
-           <div className="bg-zinc-900 p-8 rounded-[40px] border border-red-600/20 w-full max-w-sm shadow-2xl relative">
-              <div className="w-16 h-16 bg-red-600/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-red-600/20">
-                 <span className="text-3xl">🆘</span>
+        <div className="fixed inset-0 z-[200] bg-[#000]/95 backdrop-blur-2xl flex items-center justify-center p-8 animate-in fade-in duration-300">
+           <div className="bg-[#0a0a0a] p-10 rounded-[60px] border border-red-600/30 w-full max-w-sm shadow-[0_0_100px_rgba(220,38,38,0.3)] relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5 text-8xl font-black italic text-red-600 pointer-events-none">SOS</div>
+              <div className="w-24 h-24 bg-red-600/10 rounded-[35px] flex items-center justify-center mx-auto mb-10 border border-red-600/30 shadow-inner">
+                 <span className="text-5xl">🆘</span>
               </div>
-              <h3 className="text-xl font-black text-white uppercase italic mb-2 tracking-tighter text-center">ЭКСТРЕННАЯ СВЯЗЬ</h3>
-              <p className="text-zinc-600 text-[8px] font-bold uppercase tracking-widest leading-relaxed mb-8 italic text-center">
-                Укажи номера доверенных лиц (через запятую). Им уйдет сигнал при активации SOS.
+              <h3 className="text-3xl font-black text-white uppercase italic mb-4 tracking-tighter text-center leading-none">ЭКСТРЕННАЯ СВЯЗЬ</h3>
+              <p className="text-zinc-500 text-[11px] font-bold uppercase tracking-widest leading-relaxed mb-10 italic text-center px-4">
+                Укажи номера доверенных лиц. Им уйдет сигнал тревоги при нажатии кнопки SOS.
               </p>
               
-              <div className="space-y-4 mb-10">
-                 <div className="space-y-1">
-                    <label className="text-[7px] text-zinc-700 font-black uppercase tracking-widest ml-1 italic mono">ТЕЛЕФОНЫ_ДЛЯ_СВЯЗИ</label>
+              <div className="space-y-6 mb-12">
+                 <div className="space-y-3">
+                    <label className="text-[8px] text-red-900 font-black uppercase tracking-widest ml-2 italic mono">TRUST_NODES_CONFIG</label>
                     <textarea 
                       value={trustedContacts}
                       onChange={e => setTrustedContacts(e.target.value)}
-                      placeholder="+79991234567, +79998887766"
-                      className="w-full bg-black border border-white/10 rounded-2xl p-4 text-white text-[11px] font-bold outline-none focus:border-red-600/30 min-h-[100px]"
+                      placeholder="+79991234567, ..."
+                      className="w-full bg-black border border-white/10 rounded-[35px] p-8 text-white text-[14px] font-bold outline-none focus:border-red-600/40 min-h-[160px] shadow-inner placeholder:text-zinc-900"
                     />
                  </div>
               </div>
 
-              <div className="space-y-3">
-                 <button onClick={handleSaveSOS} className="w-full bg-red-600 text-white font-black py-5 rounded-xl uppercase italic shadow-xl shadow-red-900/20">
+              <div className="space-y-4">
+                 <button onClick={handleSaveSOS} className="w-full bg-red-600 text-white font-black py-7 rounded-[28px] uppercase italic shadow-2xl shadow-red-900/60 active-press text-xl">
                     СОХРАНИТЬ
                  </button>
-                 <button onClick={() => setShowSOSSettings(false)} className="w-full text-zinc-700 font-black py-4 rounded-xl uppercase italic text-[9px] tracking-widest">
+                 <button onClick={() => setShowSOSSettings(false)} className="w-full text-zinc-800 font-black py-4 rounded-xl uppercase italic text-[11px] tracking-[0.4em]">
                     ОТМЕНА
                  </button>
-              </div>
-              
-              <div className="mt-8 p-4 bg-black/40 rounded-2xl border border-white/5 opacity-40">
-                 <p className="text-[7px] text-zinc-700 font-black uppercase italic leading-tight text-center">
-                   ФУНКЦИЯ SOS НЕ ЗАМЕНЯЕТ 112. <br/> ЦЕХ — ЭТО МУЖИКИ РЯДОМ, А НЕ ПОЛИЦИЯ.
-                 </p>
               </div>
            </div>
         </div>
       )}
 
-      {/* VERIFICATION MODAL */}
       {isVerifying && (
-        <div className="fixed inset-0 z-[200] bg-[#050505]/95 backdrop-blur-xl flex items-center justify-center p-8 animate-in fade-in duration-300">
-           <div className="bg-zinc-900 p-8 rounded-[40px] border border-[#D4AF37]/20 w-full max-w-sm text-center shadow-2xl relative overflow-hidden">
-              <div className="w-16 h-16 bg-[#D4AF37]/10 rounded-2xl flex items-center justify-center mx-auto mb-6 border border-[#D4AF37]/20">
-                 <span className="text-3xl">🛡️</span>
+        <div className="fixed inset-0 z-[200] bg-[#000]/95 backdrop-blur-2xl flex items-center justify-center p-8 animate-in fade-in duration-300">
+           <div className="bg-[#0a0a0a] p-10 rounded-[60px] border border-[#D4AF37]/30 w-full max-w-sm text-center shadow-[0_0_100px_rgba(212,175,55,0.2)] relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-full blueprint opacity-10 pointer-events-none"></div>
+              <div className="w-28 h-28 bg-[#D4AF37]/10 rounded-[40px] flex items-center justify-center mx-auto mb-12 border border-[#D4AF37]/20 shadow-inner">
+                 <span className="text-6xl drop-shadow-2xl">🛡️</span>
               </div>
-              <h3 className="text-xl font-black text-white uppercase italic mb-3 tracking-tighter">ВЕРИФИКАЦИЯ</h3>
-              <p className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest leading-relaxed mb-8 italic">
-                Твой профиль будет проверен Бугром лично. Мастера со статусом доверия получают доступ к прямым контрактам.
+              <h3 className="text-4xl font-black text-white uppercase italic mb-6 tracking-tighter leading-none gold-text">ВЕРИФИКАЦИЯ</h3>
+              <p className="text-zinc-500 text-[12px] font-bold uppercase tracking-widest leading-relaxed mb-12 italic px-4">
+                Проверка личности Бугром. Доверенные мастера получают прямой доступ к крупным объектам и спец-предложениям Цеха.
               </p>
-              <div className="space-y-3">
-                 <button onClick={handleVerification} className="w-full bg-[#D4AF37] text-black font-black py-4 rounded-xl uppercase italic shadow-xl">
-                    ЗАПУСТИТЬ
+              <div className="space-y-4">
+                 <button onClick={handleVerification} className="w-full bg-[#D4AF37] text-black font-black py-7 rounded-[28px] uppercase italic tracking-tighter shadow-2xl shadow-[#D4AF37]/30 active-press text-xl">
+                    ПОДАТЬ ЗАЯВКУ
                  </button>
-                 <button onClick={() => setIsVerifying(false)} className="w-full text-zinc-700 font-black py-4 rounded-xl uppercase italic text-[9px] tracking-widest">
+                 <button onClick={() => setIsVerifying(false)} className="w-full text-zinc-800 font-black py-4 rounded-xl uppercase italic text-[11px] tracking-[0.4em]">
                     ОТМЕНА
                  </button>
               </div>

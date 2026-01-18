@@ -38,10 +38,10 @@ export enum Screen {
   HITCHHIKERS = 'HITCHHIKERS',
   REST = 'REST',
   ABOUT = 'ABOUT',
-  AGRO_CENTER = 'AGRO_CENTER'
+  AGRO_CENTER = 'AGRO_CENTER',
+  SOS_RULES = 'SOS_RULES',
+  LEGAL_CENTER = 'LEGAL_CENTER'
 }
-
-export type SOSScenario = 'ACCIDENT' | 'INJURY' | 'STUCK' | 'THREAT' | 'OTHER';
 
 export interface User {
   id: string;
@@ -55,19 +55,20 @@ export interface User {
   isVerified: boolean;
   welcomeBonusClaimed: boolean;
   isReliable: boolean;
+  isBanned?: boolean;
   referralCode: string;
+  referredById?: string;
   dealsCount: number;
   isDonor: boolean;
   level: string;
   specialization: string[];
   portfolioImages?: string[];
   trustedContacts?: string[];
-  referredById?: string;
-  isBanned?: boolean;
 }
 
 export interface Job {
   id: string;
+  authorId: string;
   title: string;
   salary: string;
   region: string;
@@ -76,7 +77,6 @@ export interface Job {
   housing: boolean;
   description: string;
   contact: string;
-  authorId?: string;
   vakhtaDuration?: string;
   isVerifiedVakhta?: boolean;
   food?: boolean;
@@ -85,14 +85,14 @@ export interface Job {
 
 export interface ServiceRequest {
   id: string;
+  authorId?: string;
+  author: string;
   category: string;
   title: string;
   description: string;
   price: string;
-  author: string;
   contact: string;
   cityId?: string;
-  authorId?: string;
 }
 
 export interface Location {
@@ -110,6 +110,7 @@ export interface TeamMember {
 
 export interface Team {
   id: string;
+  authorId?: string;
   name: string;
   leader: string;
   category: string;
@@ -120,11 +121,11 @@ export interface Team {
   rating: number;
   cityId?: string;
   contact: string;
-  authorId?: string;
 }
 
 export interface AutoService {
   id: string;
+  authorId?: string;
   name: string;
   category: string;
   address: string;
@@ -133,11 +134,11 @@ export interface AutoService {
   cityId?: string;
   contact: string;
   features: string[];
-  authorId?: string;
 }
 
 export interface HeavyMachinery {
   id: string;
+  authorId?: string;
   type: string;
   model: string;
   rate: string;
@@ -147,12 +148,11 @@ export interface HeavyMachinery {
   includesOperator: boolean;
   includesFuel: boolean;
   specs: string[];
-  authorId?: string;
 }
 
 export interface HitchhikingCargo {
   id: string;
-  authorId?: string;
+  authorId: string;
   title: string;
   routeFrom: string;
   routeTo: string;
@@ -167,9 +167,18 @@ export interface HitchhikingCargo {
 export interface Conversation {
   id: string;
   participant: Partial<User>;
-  unreadCount: number;
   lastMessage?: string;
   lastMessageTime?: number;
+  unreadCount: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  text?: string;
+  image?: string;
+  voiceUrl?: string;
+  timestamp: number;
 }
 
 export interface MarketItem {
@@ -183,21 +192,6 @@ export interface MarketItem {
   description: string;
   contact: string;
   cityId?: string;
-}
-
-export interface Hitchhiker {
-  id: string;
-  authorId: string;
-  name: string;
-  routeFrom: string;
-  routeTo: string;
-  departureDate: string;
-  price: string;
-  carModel?: string;
-  seats: number;
-  description: string;
-  contact: string;
-  canTakeCargo: boolean;
 }
 
 export interface VakhtaEntry {
@@ -224,8 +218,10 @@ export interface FeedPost {
   content: string;
   imageUrl?: string;
   createdAt: number;
-  isSos?: boolean;
+  isSos: boolean;
 }
+
+export type SOSScenario = 'ACCIDENT' | 'INJURY' | 'STUCK' | 'THREAT' | 'OTHER';
 
 export interface SOSSignal {
   id: string;
@@ -236,15 +232,23 @@ export interface SOSSignal {
   lng: number;
   timestamp: number;
   status: 'SENT' | 'HELPING' | 'RESOLVED';
+  message?: string;
+  voiceUrl?: string;
 }
 
-export interface ChatMessage {
+export interface Hitchhiker {
   id: string;
-  senderId: string;
-  text?: string;
-  image?: string;
-  voiceUrl?: string;
-  timestamp: number;
+  authorId: string;
+  name: string;
+  routeFrom: string;
+  routeTo: string;
+  departureDate: string;
+  price: string;
+  carModel?: string;
+  seats: number;
+  description: string;
+  contact: string;
+  canTakeCargo: boolean;
 }
 
 export interface CRMProject {

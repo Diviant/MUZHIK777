@@ -92,6 +92,8 @@ export const MOCK_TEAMS: Team[] = [
 export const MOCK_JOBS: Job[] = [
   {
     id: '1',
+    // Added authorId to fix Property 'authorId' is missing error
+    authorId: 'system-recruiter-1',
     title: 'Сварщик НАКС (Вахта 60/30)',
     salary: '180,000 - 240,000 ₽',
     region: 'ЯНАО',
