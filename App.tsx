@@ -57,7 +57,6 @@ const App: React.FC = () => {
   const [autoServices, setAutoServices] = useState<AutoService[]>([]);
   const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
 
-  // Фоновая загрузка контента (не блокирует старт)
   const fetchContent = useCallback(() => {
     db.getJobs().then(setJobs).catch(() => {});
     db.getMarketItems().then(setMarketItems).catch(() => {});
@@ -77,7 +76,6 @@ const App: React.FC = () => {
     }
   }, []);
 
-  // Быстрая инициализация сессии
   useEffect(() => {
     const initSession = async () => {
       if (isSupabaseConfigured()) {
@@ -96,9 +94,7 @@ const App: React.FC = () => {
       } else {
         setDbConnected(false);
       }
-      // Самое важное: отключаем экран загрузки СРАЗУ после проверки сессии
       setIsInitializing(false);
-      // Контент тянем в фоне
       fetchContent();
     };
 
@@ -133,8 +129,7 @@ const App: React.FC = () => {
   }, []);
 
   const currentView = useMemo(() => {
-    // Внутренний лоадер для App, если он все еще нужен в каких-то переходах
-    if (isInitializing) return null;
+    if (isInitializing && !isGuest) return null;
 
     switch (currentScreen) {
       case Screen.WELCOME: return <Welcome onStart={() => navigate(user ? Screen.HOME : Screen.AUTH)} onGuest={handleGuestEntry} navigate={navigate} />;
