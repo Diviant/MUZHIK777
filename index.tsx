@@ -14,20 +14,23 @@ const startApp = () => {
         </React.StrictMode>
       );
       
-      // Скрываем спиннер только после успешной инициализации рендера
-      const spinner = document.getElementById('loading-spinner');
-      if (spinner) spinner.style.display = 'none';
+      // Скрываем splash screen как только React начал рендеринг App
+      // Мы не ждем полной инициализации данных внутри App, чтобы пользователь сразу видел Welcome screen
+      setTimeout(() => {
+        const loader = document.getElementById('initial-loader');
+        if (loader) {
+          loader.style.opacity = '0';
+          setTimeout(() => loader.style.display = 'none', 500);
+        }
+      }, 100);
     }
   } catch (err) {
     console.error("Critical Render Error:", err);
-    const fallback = document.getElementById('fallback-error');
-    if (fallback) fallback.style.display = 'flex';
-    const spinner = document.getElementById('loading-spinner');
-    if (spinner) spinner.style.display = 'none';
+    const loader = document.getElementById('initial-loader');
+    if (loader) loader.innerHTML = '<div style="color:red; font-size:10px; font-weight:bold;">BOOT_ERROR: RESTART APP</div>';
   }
 };
 
-// Запуск приложения
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', startApp);
 } else {

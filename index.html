@@ -34,41 +34,57 @@
         background-size: 32px 32px;
       }
 
+      /* Мгновенный лоадер */
+      #initial-loader {
+        position: fixed;
+        inset: 0;
+        background: #050505;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease-out;
+      }
+
+      .loader-logo {
+        font-size: 42px;
+        font-weight: 900;
+        font-style: italic;
+        letter-spacing: -2px;
+        margin-bottom: 20px;
+        color: white;
+      }
+
+      .loader-bar {
+        width: 120px;
+        height: 2px;
+        background: rgba(212, 175, 55, 0.1);
+        border-radius: 2px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .loader-progress {
+        position: absolute;
+        height: 100%;
+        width: 50%;
+        background: var(--gold);
+        animation: loading 1.5s infinite ease-in-out;
+      }
+
+      @keyframes loading {
+        0% { left: -50%; }
+        100% { left: 100%; }
+      }
+
       .gold-text {
         background: linear-gradient(135deg, #FFF5D1 0%, #D4AF37 50%, #9A7D0A 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }
 
-      .glass {
-        background: rgba(15, 15, 15, 0.8);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-
-      @keyframes shimmer {
-        0% { opacity: 0.3; transform: scale(1); }
-        50% { opacity: 1; transform: scale(1.02); }
-        100% { opacity: 0.3; transform: scale(1); }
-      }
-
-      .animate-shimmer {
-        animation: shimmer 4s ease-in-out infinite;
-      }
-
-      .stagger-item {
-        opacity: 0;
-        animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      }
-
-      @keyframes slide-up {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      .active-press:active {
-        transform: scale(0.96);
-      }
-
+      .active-press:active { transform: scale(0.96); }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
       .pt-safe { padding-top: env(safe-area-inset-top); }
@@ -87,6 +103,13 @@
 </script>
 </head>
   <body class="blueprint">
+    <div id="initial-loader">
+      <div class="loader-logo uppercase">ЦЕХ<span class="gold-text">/</span>СИЛА</div>
+      <div class="loader-bar">
+        <div class="loader-progress"></div>
+      </div>
+      <div style="margin-top: 20px; font-size: 8px; font-weight: 900; letter-spacing: 0.5em; color: #333; font-family: 'JetBrains Mono'">LOADING_TERMINAL_v4.6</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>

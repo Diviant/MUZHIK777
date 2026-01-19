@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Screen, User, Job, ServiceRequest, Location, Team, AutoService, HeavyMachinery, HitchhikingCargo, Conversation, MarketItem, Hitchhiker } from './types';
+import { Screen, User, Job, Location, Team, AutoService, HeavyMachinery, HitchhikingCargo, Conversation, MarketItem, Hitchhiker } from './types';
 import { db } from './database';
 import Welcome from './components/Welcome';
 import Auth from './components/Auth';
@@ -57,6 +57,7 @@ const App: React.FC = () => {
   const [autoServices, setAutoServices] = useState<AutoService[]>([]);
   const [machinery, setMachinery] = useState<HeavyMachinery[]>([]);
 
+  // Фоновая загрузка контента (не блокирует старт)
   const fetchContent = useCallback(() => {
     db.getJobs().then(setJobs).catch(() => {});
     db.getMarketItems().then(setMarketItems).catch(() => {});
@@ -76,28 +77,33 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const initData = useCallback(async () => {
-    if (isSupabaseConfigured()) {
-      const sessionUser = await db.getCurrentSessionUser();
-      if (sessionUser) {
-        setUser(sessionUser);
-        setIsGuest(false);
-        setCurrentScreen(Screen.HOME);
-        setDbConnected(true);
-        fetchContent();
-        handleWelcomeBonus(sessionUser);
-      } else {
-        setDbConnected(true);
-      }
-    } else {
-      setDbConnected(false);
-    }
-    setIsInitializing(false);
-  }, [fetchContent, handleWelcomeBonus]);
-
+  // Быстрая инициализация сессии
   useEffect(() => {
-    initData();
-  }, [initData]);
+    const initSession = async () => {
+      if (isSupabaseConfigured()) {
+        try {
+          const sessionUser = await db.getCurrentSessionUser();
+          if (sessionUser) {
+            setUser(sessionUser);
+            setIsGuest(false);
+            setCurrentScreen(Screen.HOME);
+            handleWelcomeBonus(sessionUser);
+          }
+          setDbConnected(true);
+        } catch (e) {
+          setDbConnected(true);
+        }
+      } else {
+        setDbConnected(false);
+      }
+      // Самое важное: отключаем экран загрузки СРАЗУ после проверки сессии
+      setIsInitializing(false);
+      // Контент тянем в фоне
+      fetchContent();
+    };
+
+    initSession();
+  }, [handleWelcomeBonus, fetchContent]);
 
   const handleGuestEntry = useCallback(() => {
     setIsGuest(true);
@@ -127,16 +133,12 @@ const App: React.FC = () => {
   }, []);
 
   const currentView = useMemo(() => {
-    if (isInitializing) return (
-      <div className="flex-1 bg-black flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-2 border-[#D4AF37] border-t-transparent rounded-full animate-spin mb-6"></div>
-        <div className="text-[#D4AF37] font-black italic text-[9px] tracking-[0.6em] uppercase animate-pulse">ЦЕХ / СОЕДИНЕНИЕ</div>
-      </div>
-    );
+    // Внутренний лоадер для App, если он все еще нужен в каких-то переходах
+    if (isInitializing) return null;
 
     switch (currentScreen) {
       case Screen.WELCOME: return <Welcome onStart={() => navigate(user ? Screen.HOME : Screen.AUTH)} onGuest={handleGuestEntry} navigate={navigate} />;
-      case Screen.AUTH: return <Auth onSuccess={() => initData()} onGuest={handleGuestEntry} navigate={navigate} />;
+      case Screen.AUTH: return <Auth onSuccess={() => navigate(Screen.HOME)} onGuest={handleGuestEntry} navigate={navigate} />;
       case Screen.HOME: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
       case Screen.JOBS: return <Jobs jobs={jobs} user={user} navigate={navigate} onAddJob={async (j) => { await db.addJob(j); fetchContent(); }} onUpdateUser={f => setUser(prev => prev ? {...prev, ...f} : null)} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.RANKING: return <Ranking navigate={navigate} currentUser={user} />;
@@ -157,7 +159,7 @@ const App: React.FC = () => {
       case Screen.TEAMS: return <Teams teams={teams} navigate={navigate} onAddTeam={async (t) => { await db.addTeam(t); fetchContent(); }} location={selectedLocation} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
       case Screen.ADMIN_LOGIN: return <AdminLogin navigate={navigate} />;
       case Screen.ADMIN_VACANCIES: return <AdminVacancies navigate={navigate} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
-      case Screen.DIAGNOSTIC: return <Diagnostic navigate={navigate} onRefresh={() => initData()} />;
+      case Screen.DIAGNOSTIC: return <Diagnostic navigate={navigate} onRefresh={() => window.location.reload()} />;
       case Screen.GALLERY: return <Gallery user={user!} navigate={navigate} onUpdate={f => setUser(prev => prev ? {...prev, ...f} : null)} />;
       case Screen.REFERRAL: return <Referral user={user} navigate={navigate} onBonusClaim={(p) => setUser(prev => prev ? {...prev, points: prev.points + p} : null)} />;
       case Screen.VAKHTA_CENTER: return <VakhtaCenter jobs={jobs} user={user!} navigate={navigate} onStartChat={(p) => { setActiveChat({ id: `chat-${p.id}`, participant: p, unreadCount: 0 }); navigate(Screen.CHAT_DETAIL); }} />;
@@ -172,7 +174,7 @@ const App: React.FC = () => {
       case Screen.LEGAL_CENTER: return <LegalCenter user={user!} navigate={navigate} />;
       default: return <Home navigate={navigate} user={user} location={selectedLocation} dbConnected={dbConnected} />;
     }
-  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, initData, navigate, handleGuestEntry, isGuest, fetchContent]);
+  }, [currentScreen, user, isInitializing, activeChat, jobs, marketItems, cargo, hitchhikers, teams, autoServices, machinery, selectedLocation, dbConnected, navigate, handleGuestEntry, isGuest, fetchContent]);
 
   const showNav = user && ![Screen.WELCOME, Screen.AUTH, Screen.CHAT_DETAIL, Screen.BUGOR_CHAT, Screen.ADMIN_LOGIN, Screen.ADMIN_VACANCIES, Screen.DIAGNOSTIC, Screen.GALLERY, Screen.REFERRAL, Screen.MAP_EXPLORER, Screen.SVO_CENTER, Screen.ABOUT, Screen.AGRO_CENTER, Screen.SOS_RULES, Screen.LEGAL_CENTER].includes(currentScreen);
 
